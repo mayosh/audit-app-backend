@@ -74,7 +74,7 @@ def oauth2callback():
       CLIENT_SECRETS_FILE, scopes=[oauth2.GetAPIScope('adwords'),
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile'], state=flask.request.args.get('state', ''))
-    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+    flow.redirect_uri = flask.request.url_root + 'oauth-callback'# flask.url_for('oauth2callback', _external=True)
     if app.debug:
         flow.redirect_uri = 'http://localhost:8080/oauth-callback'
 
