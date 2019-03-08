@@ -38,6 +38,13 @@ def hello_world():
     # return 'Hello, World!' + flask.url_for('authorize', _external=True)
     return flask.render_template('index.html')
 
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    # if app.debug:
+    #     return requests.get('http://localhost:8080/{}'.format(path)).text
+    return render_template("index.html")
+
 @app.route('/authorize')
 def authorize():
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
