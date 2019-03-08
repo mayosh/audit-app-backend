@@ -113,16 +113,16 @@ def oauth2callback():
         }
 
     # return flask.jsonify({'user': 'authorized'})
-    if app.debug:
+    # if app.debug:
         # redirect to dev.accounts
-        return  flask.jsonify({
-            'gid': info['id'],
-            'name': info['name'],
-            'email': info['email']
-            })
-    else:
-        # set coockie
-        return 'authorized'
+    return  flask.jsonify({
+        'gid': info['id'],
+        'name': info['name'],
+        'email': info['email']
+        })
+    # else:
+    #     # set coockie
+    #     return 'authorized'
 
 @app.route('/get_user')
 def get_user():
