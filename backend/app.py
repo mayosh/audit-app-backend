@@ -46,7 +46,8 @@ def authorize():
         'https://www.googleapis.com/auth/userinfo.profile'])
 
     # change this!!
-    flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+    # flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
+    flow.redirect_uri = flask.request.url_root + 'oauth-callback'
     if app.debug:
         flow.redirect_uri = 'http://localhost:8080/oauth-callback'  # flask.url_for('oauth2callback')
 
