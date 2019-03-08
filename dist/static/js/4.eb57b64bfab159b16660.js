@@ -1,0 +1,2 @@
+webpackJsonp([4],{k9Gg:function(t,e,n){"use strict";Object.defineProperty(e,"__esModule",{value:!0});n("mtWM");var r={render:function(){var t=this.$createElement,e=this._self._c||t;return e("div",[this._v("\n  "+this._s(this.alert)+"\n  "),e("router-link",{attrs:{to:{name:"Checklist",params:{customerId:123}}}},[this._v("22 checklist")])],1)},staticRenderFns:[]},s=n("VU/8")({data:function(){return{alert:"234"}}},r,!1,null,null,null);e.default=s.exports}});
+//# sourceMappingURL=4.eb57b64bfab159b16660.js.map
