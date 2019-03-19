@@ -15,6 +15,8 @@ from io import StringIO
 import csv
 import datetime
 import pickle
+import re
+
 
 
 
@@ -38,12 +40,14 @@ def hello_world():
     # return 'Hello, World!' + flask.url_for('authorize', _external=True)
     return flask.render_template('index.html')
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def catch_all(path):
-    # if app.debug:
-    #     return requests.get('http://localhost:8080/{}'.format(path)).text
-    return flask.render_template("index.html")
+if not app.debug:
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def catch_all(path):
+        # if app.debug:
+        #     return requests.get('http://localhost:8080/{}'.format(path)).text
+        return flask.render_template("index.html")
+
 
 @app.route('/authorize')
 def authorize():
@@ -206,9 +210,22 @@ def check_account(customerId, check_service):
         'listed': True
     },
     {
+        'name': 'short_modifiers_check',
+        'description': '1 or 2 word Broad Match Modifiers',
+        'apply': short_broad_exist,
+        'listed': True
+    },
+    {
         'name': 'mobile_firendly_pages',
         'description' :'Landing pages are mobile firendly',
-        'apply': mobile_firendly_pages #low_quality_keywords
+        'apply': mobile_firendly_pages, #landing_home_pages
+        'listed': True
+    },
+    {
+        'name': 'landing_home_pages',
+        'description' :'Landing Page = homepage (no /anything at end of URL)',
+        'apply': landing_home_pages, #has_modifiers
+        'listed': True
     },
     {
         'name': 'low_quality_keywords',
@@ -223,7 +240,7 @@ def check_account(customerId, check_service):
     {
         'name': 'has_changes',
         'description' :'Change History Has More Than 10 changes in period (last 90 days)',
-        'apply': has_changes # has_more3_ads
+        'apply': has_changes # cost_per_conversions
     },
     {
         'name': 'has_more3_ads',
@@ -244,6 +261,39 @@ def check_account(customerId, check_service):
         'name': 'have_trials',
         'description' :'High Spending Account has active Trial Campaigns',
         'apply': have_trials # have_trials
+    },
+    {
+        'name': 'has_modifiers',
+        'description' :'All enabled CPC campaigns have bid modifiers',
+        'apply': has_modifiers, #has_customizers
+        'listed': True
+    },
+    {
+        'name': 'has_customizers',
+        'description' :'Account has ad customized feeds',
+        'apply': has_customizers #location_interested
+    },
+    {
+        'name': 'bid_strategy',
+        'description' :'Account has non manual strategies (applicable for spending over 3K)',
+        'apply': bid_strategy, #bid_strategy
+        'listed': True
+    },
+    {
+        'name': 'location_interested',
+        'description' :'Enabled cmapigns has locations has "interested in" option',
+        'apply': location_interested, #bid_strategy
+        'listed': True
+    },
+    {
+        'name': 'cost_per_conversions',
+        'description' :'Cost Per Conversions',
+        'apply': cost_per_conversions # impressions_share
+    },
+    {
+        'name': 'impressions_share',
+        'description' :'Simpression Share',
+        'apply': impressions_share # impressions_share
     }
     ]
     callee = next((item for item in checks if item['name'] == check_service), None)
@@ -274,7 +324,7 @@ def check_convesions_exist(adwords_client, item, list=None):
         return res
     return flask.jsonify(res)
 
-def full_broad_exist(adwords_client, item, list=None):
+def full_broad_exist_(adwords_client, item, list=None):
     criteria_service = adwords_client.GetService('AdGroupCriterionService', version='v201809')
     offset = 0
     selector = {
@@ -305,12 +355,88 @@ def full_broad_exist(adwords_client, item, list=None):
         res['flag'] = 'green'
     if list:
         rows =[['KeywordText', 'AdGroupId']] + [[keyword['criterion']['text'], keyword['adGroupId']] for keyword in keywords['entries']]
-        print (rows[:5])
+        # print (rows[:5])
         res['rows'] = rows
         return res
     return flask.jsonify(res)
 
-def mobile_firendly_pages(adwords_client, item):
+def full_broad_exist(adwords_client, item, list=None):
+    report_downloader = adwords_client.GetReportDownloader(version='v201809')
+
+    # Create report query.
+    report_query = (adwords.ReportQueryBuilder()
+                  .Select('Criteria', 'AdGroupName', 'CampaignName', 'Clicks')
+                  .From('KEYWORDS_PERFORMANCE_REPORT')
+                  .Where('Criteria').DoesNotContainIgnoreCase('+')
+                  .Where('KeywordMatchType').EqualTo('BROAD')
+                  .Where('Status').EqualTo('ENABLED')
+                  .Where('AdGroupStatus').EqualTo('ENABLED')
+                  .Where('CampaignId').In(*get_search_campaigns_ids(adwords_client))
+                  # TODO add campaign Ids filter
+                  .During('LAST_MONTH')
+                  .Build())
+    stream_data = report_downloader.DownloadReportAsStringWithAwql(
+        report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, include_zero_impressions=True)
+
+    reader = csv.reader(stream_data.split('\n')) # , dialect='excel') .split('\n')
+    affected = []
+    for row in reader:
+        if row != []:
+            affected.append(row)
+            print(row)
+    res = {}
+    res['description'] = item['description']
+    print (affected[:5])
+    if len(affected) > 1:
+        res['flag'] = 'red'
+    else:
+        res['flag'] = 'green'
+    if list:
+        # rows =[['KeywordText', 'AdGroupId']] + [[keyword['criterion']['text'], keyword['adGroupId']] for keyword in keywords['entries']]
+        # print (rows[:5])
+        res['rows'] = affected
+        return res
+    return flask.jsonify(res)
+
+def short_broad_exist(adwords_client, item, list=None):
+    report_downloader = adwords_client.GetReportDownloader(version='v201809')
+
+    # Create report query.
+    report_query = (adwords.ReportQueryBuilder()
+                  .Select('Criteria', 'AdGroupName', 'CampaignName', 'Clicks')
+                  .From('KEYWORDS_PERFORMANCE_REPORT')
+                  .Where('Criteria').ContainsIgnoreCase('+')
+                  .Where('KeywordMatchType').EqualTo('BROAD')
+                  .Where('Status').EqualTo('ENABLED')
+                  .Where('AdGroupStatus').EqualTo('ENABLED')
+                  .Where('CampaignId').In(*get_search_campaigns_ids(adwords_client))
+                  # TODO add campaign Ids filter
+                  .During('LAST_MONTH')
+                  .Build())
+    stream_data = report_downloader.DownloadReportAsStringWithAwql(
+        report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, include_zero_impressions=True)
+
+    reader = csv.reader(stream_data.split('\n')) # , dialect='excel') .split('\n')
+    affected = []
+    for row in reader:
+        if row != [] and len(row[0].split()) < 3:
+            affected.append(row)
+            print(row)
+    res = {}
+    res['description'] = item['description']
+    print (affected[:5])
+    if len(affected) > 1:
+        res['flag'] = 'red'
+    else:
+        res['flag'] = 'green'
+    if list:
+        # rows =[['KeywordText', 'AdGroupId']] + [[keyword['criterion']['text'], keyword['adGroupId']] for keyword in keywords['entries']]
+        # print (rows[:5])
+        res['rows'] = affected
+        return res
+    return flask.jsonify(res)
+
+def mobile_firendly_pages(adwords_client, item, list=None):
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
 
     # Create report query.
@@ -331,13 +457,54 @@ def mobile_firendly_pages(adwords_client, item):
             print(row)
     res = {}
     res['description'] = item['description']
-    if len(affected) > 0:
+    if len(affected) > 1:
         res['flag'] = 'amber'
     else:
         res['flag'] = 'green'
+    if list:
+        res['rows'] = affected
+        return res
     return flask.jsonify(res)
 
-def low_quality_keywords(adwords_client, item):
+def landing_home_pages(adwords_client, item, list=None):
+    report_downloader = adwords_client.GetReportDownloader(version='v201809')
+
+    # Create report query.
+    report_query = (adwords.ReportQueryBuilder()
+                  .Select('CampaignName', 'ExpandedFinalUrlString', 'Clicks')
+                  .From('LANDING_PAGE_REPORT')
+                  .During('LAST_MONTH')
+                  .Build())
+    stream_data = report_downloader.DownloadReportAsStringWithAwql(
+        report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True)
+
+    reader = csv.reader(stream_data.split('\n')) # , dialect='excel') .split('\n')
+    affected = []
+    head = False
+    check_re = r'^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+\/?)'
+    for row in reader:
+        if row != []:
+            if not head:
+                head = True
+                print(row)
+                url_index = row.index('Expanded landing page')
+                affected.append(row)
+            else:
+                domain = re.search(check_re, row[url_index]).group()
+                if domain == row[url_index]:
+                    affected.append(row)
+    res = {}
+    res['description'] = item['description']
+    if len(affected) > 1:
+        res['flag'] = 'amber'
+    else:
+        res['flag'] = 'green'
+    if list:
+        res['rows'] = affected
+        return res
+    return flask.jsonify(res)
+
+def low_quality_keywords(adwords_client, item, list=None):
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
 
     # Create report query.
@@ -359,10 +526,13 @@ def low_quality_keywords(adwords_client, item):
             print(row)
     res = {}
     res['description'] = item['description']
-    if len(affected) > 0:
+    if len(affected) > 1:
         res['flag'] = 'amber'
     else:
         res['flag'] = 'green'
+    if list:
+        res['rows'] = affected
+        return res
     return flask.jsonify(res)
 
 def has_negatives(adwords_client, item):
@@ -419,7 +589,7 @@ def has_changes(adwords_client, item):
     # Construct selector and get all changes.
     today = datetime.datetime.today()
     yesterday = today - datetime.timedelta(days = 90)
-    campaign_ids = get_campain_ids(adwords_client)
+    campaign_ids = get_campaigns_ids(adwords_client)
     changes_selector = {
       'dateTimeRange': {
           'min': yesterday.strftime('%Y%m%d %H%M%S'),
@@ -615,6 +785,266 @@ def have_trials(adwords_client, item):
             res['flag'] = 'green'
     return flask.jsonify(res)
 
+def has_modifiers(adwords_client, item, list=None):
+    res = {}
+    res['description'] = item['description']
+    # GET CPC campaigns:
+    campaigns_service = adwords_client.GetService(
+        'CampaignService', version='v201809')
+
+    offset = 0
+    selector = {
+        'fields': ['Name', 'Id', 'BiddingStrategyType'],
+        'paging': {
+            'startIndex': str(offset),
+            'numberResults': str(PAGE_SIZE)
+        },
+        'predicates': [
+            {
+              'field': 'BiddingStrategyType', #campaigns_service
+              'operator': 'EQUALS',
+              'values': 'MANUAL_CPC'
+            },{
+              'field': 'Status', #campaigns_service
+              'operator': 'EQUALS',
+              'values': 'ENABLED'
+            }
+        ]
+    }
+    campaign_entries = get_selector_entries(campaigns_service, selector)
+
+    campaign_ids = [campaign['id'] for campaign in campaign_entries]
+
+    # CustomerSyncService:
+    criterion_service = adwords_client.GetService(
+        'CampaignCriterionService', version='v201809')
+    offset = 0
+    selector = {
+        'fields': ['CampaignId', 'CampaignCriterionStatus', 'CriteriaType', 'BidModifier'],
+        'paging': {
+            'startIndex': str(offset),
+            'numberResults': str(PAGE_SIZE)
+        },
+        'predicates': [
+            {
+              'field': 'CriteriaType',
+              'operator': 'NOT_EQUALS',
+              'values': 'KEYWORD'
+            },
+            {
+              'field': 'BidModifier',
+              'operator': 'GREATER_THAN',
+              'values': 0.0
+            },
+            {
+              'field': 'CampaignId',
+              'operator': 'IN',
+              'values': campaign_ids
+            }
+        ]
+    }
+    selector_entries = get_selector_entries(criterion_service, selector)
+    affected = []
+    header = ['campaignId', 'campaignCriterionStatus', 'criterion', 'bidModifier']
+    campaigns_ok = []
+    if selector_entries != []:
+        for criterion in selector_entries: #page['entries']:
+            row = [criterion[key] for key in header]
+            row[header.index('criterion')] = row[header.index('criterion')]['type']
+            row[header.index('bidModifier')] = row[header.index('bidModifier')] - 1
+            campaigns_ok.append(row[header.index('campaignId')])
+            # affected.append(row)
+            # campaign_dict[row[header.index('campaignId')]]['hasModifiers'] = True
+    for campaign in campaign_entries:
+        if not campaign['id'] in campaigns_ok:
+            affected.append([campaign['name'], 'No Modifiers'])
+
+    affected = [['Campaign name', 'Has Modifiers']] + affected
+    if app.debug:
+        print (affected[:5])
+    if len(affected) > 1:
+        res['flag'] = 'red'
+    else:
+        res['flag'] = 'green'
+    if list:
+        res['rows'] = affected
+        return res
+    return flask.jsonify(res)
+
+def has_customizers(adwords_client, item):
+    res = {}
+    res['description'] = item['description']
+    # GET CPC campaigns:
+    feeds_service = adwords_client.GetService(
+        'AdCustomizerFeedService', version='v201809')
+    offset = 0
+    selector = {
+            'fields': ['FeedId', 'FeedName'],
+
+            'paging': {
+                'startIndex': str(offset),
+                'numberResults': str(PAGE_SIZE)
+            },
+            'predicates': [
+                {
+                  'field': 'FeedStatus', #campaigns_service
+                  'operator': 'EQUALS',
+                  'values': 'ENABLED'
+                }
+            ]
+        }
+    feed_page = feeds_service.get(selector)
+    if app.debug:
+        if 'entries' in feed_page:
+            for item in feed_page['entries']:
+                print(item['feedName'])
+    if feed_page['totalNumEntries'] > 0:
+        res['flag'] = 'green'
+    else:
+        res['flag'] = 'red'
+    return flask.jsonify(res)
+
+def location_interested(adwords_client, item, list=None):
+    res = {}
+    res['description'] = item['description']
+    # GET CPC campaigns:
+    campaigns_service = adwords_client.GetService(
+        'CampaignService', version='v201809')
+    offset = 0
+    selector = {
+        'fields': ['CampaignId', 'Name', 'Settings'],
+        'paging': {
+            'startIndex': str(offset),
+            'numberResults': str(PAGE_SIZE)
+        },
+        'predicates': [
+            {
+              'field': 'Status', #campaigns_service
+              'operator': 'EQUALS',
+              'values': 'ENABLED'
+            }
+        ]
+    }
+    mapping = {
+        'DONT_CARE': 'either AOI or LOP may trigger the ad',
+        'AREA_OF_INTEREST': 'the ads are triggered only if the user\'s Area Of Interest matches',
+        'LOCATION_OF_PRESENCE': 'ad is triggered only if the user\'s Location Of Presense matches'
+    }
+    campaign_entries = get_selector_entries(campaigns_service, selector)
+    print (campaign_entries[:4])
+    affected = [['Camp Id', 'Camp Name', 'Geo Settings']]
+    for campaign in campaign_entries:
+        geo_setting = next((setting for setting in campaign['settings'] if setting['Setting.Type'] == 'GeoTargetTypeSetting'), None)
+        if geo_setting and geo_setting['positiveGeoTargetType']  != 'LOCATION_OF_PRESENCE':
+
+            affected.append([ campaign['id'], campaign['name'], mapping[geo_setting['positiveGeoTargetType']] ]) #campaign['settings']
+    if app.debug:
+        print (affected[0:5])
+    res['flag'] = 'green'
+    if len(affected) > 1:
+        res['flag'] = 'amber'
+    if list:
+        res['rows'] = affected
+        return res
+    return flask.jsonify(res)
+
+def cost_per_conversions(adwords_client, item, list=None):
+    res = {'description' : item['description']}
+    report_downloader = adwords_client.GetReportDownloader(version='v201809')
+    report_query = (adwords.ReportQueryBuilder()
+                  .Select('ConversionTypeName', 'Conversions', 'CostPerConversion')
+                  .From('ACCOUNT_PERFORMANCE_REPORT')
+                  .During(DEFAULT_PERFOMANCE_PERIOD)
+                  .Build())
+    header = ['Action Name', 'Conversions', 'Cost per conversion']
+    stream_data = report_downloader.DownloadReportAsStringWithAwql(
+        report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, skip_column_header=True)
+    rows = get_reports_rows(stream_data)
+    for row in rows:
+        row[2] = float(row[2])/1000000.0
+
+    if app.debug:
+        print (rows[0:6])
+    if list:
+        return [header] + rows
+    res['rows'] = [header] + rows
+    return flask.jsonify(res)
+
+def impressions_share(adwords_client, item, list=None):
+        res = {'description' : item['description']}
+        report_downloader = adwords_client.GetReportDownloader(version='v201809')
+        report_query = (adwords.ReportQueryBuilder()
+                      .Select('Impressions', 'SearchBudgetLostImpressionShare', 'SearchRankLostImpressionShare')
+                      .From('ACCOUNT_PERFORMANCE_REPORT')
+                      .Where('AdNetworkType1').EqualTo('SEARCH')
+                      .During(DEFAULT_PERFOMANCE_PERIOD)
+                      .Build())
+        header = ['Search Immpressions Recieved', 'Lost ImpressionShare (Budget)', 'Lost ImpressionShare (Rank)']
+        stream_data = report_downloader.DownloadReportAsStringWithAwql(
+            report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, skip_column_header=True)
+        rows = get_reports_rows(stream_data)
+        # for row in rows:
+        #     row[2] = float(row[2])/1000000.0
+
+        if app.debug:
+            print (rows[0:6])
+        if list:
+            return [header] + rows
+        res['rows'] = [header] + rows
+        return flask.jsonify(res)
+
+def bid_strategy(adwords_client, item, list=None):
+    res = {}
+    res['description'] = item['description']
+    value_map = {
+    'MANUAL_CPC': 'Manual cpc',
+    'MANUAL_CPV': 'Manual cpv',
+    'MANUAL_CPM': 'Manual cpm',
+    'PAGE_ONE_PROMOTED': 'Target search page location',
+    'TARGET_SPEND': 'Maximize clicks',
+    'TARGET_CPA': 'Target CPA',
+    'TARGET_ROAS': 'Target ROAS',
+    'MAXIMIZE_CONVERSIONS': 'Maximize Conversions',
+    'MAXIMIZE_CONVERSION_VALUE': 'Maximize Conversion Value',
+    'TARGET_OUTRANK_SHARE': 'Target Outranking Share',
+    'NONE': 'None',
+    'UNKNOWN': 'unknown'
+    }
+    report_downloader = adwords_client.GetReportDownloader(version='v201809')
+    report_query = (adwords.ReportQueryBuilder()
+                  .Select('BiddingStrategyType', 'Cost')
+                  .From('CAMPAIGN_PERFORMANCE_REPORT')
+                  .During(DEFAULT_PERFOMANCE_PERIOD)
+                  .Build())
+    header = ['Bidding Strategy Type', 'Cost']
+    stream_data = report_downloader.DownloadReportAsStringWithAwql(
+        report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, skip_column_header=True)
+    rows = get_reports_rows(stream_data)
+    stat_object = {}
+    total_cost = 0.0
+    non_manual = False
+    for row in rows:
+        row[1] = float(row[1])/1000000.0
+        total_cost += row[1]
+        if (row[0] not in ['cpc', 'cpv', 'cpm']) and row[1] > 0.0:
+            non_manual = True
+        if not stat_object.get(row[0], None):
+            stat_object[row[0]] = row[1]
+        else:
+            stat_object[row[0]] += row[1]
+    stat_rows = [[key, value] for key, value in stat_object.items()]
+    if app.debug:
+        print (stat_rows[:6])
+    if list:
+        return [header] + stat_rows
+    res['flag'] = 'green'
+    if total_cost > 3000 and non_manual:
+        res['flag'] = 'amber'
+    return flask.jsonify(res)
+    # return flask.jsonify([header] + [[key, value] for key, value in stat_object.items()])
+
+
+
 @app.route('/create_sheet/<customerId>')
 def build_sheet_id(customerId):
     SCOPES = ['https://www.googleapis.com/auth/drive',
@@ -641,6 +1071,8 @@ def build_sheet_id(customerId):
 
     adwords_client = get_adwords_client()
     adwords_client.SetClientCustomerId(customerId)
+
+    # sheet checks
     checks = [
         {
             'name': 'conversions_check',
@@ -651,7 +1083,50 @@ def build_sheet_id(customerId):
             'name': 'broad_modifiers_check',
             'description' :'Full broad matches (not modifier)',
             'apply': full_broad_exist,
-            'listed': True
+            'listed': True,
+            'sheet_name': 'Full broad keywords'
+        },
+        {
+            'name': 'short_modifiers_check',
+            'description' :'1 or 2 word Broad Match Modifiers exist',
+            'apply': short_broad_exist,
+            'listed': True,
+            'sheet_name': '1 or 2 word Broad Match Modifiers'
+        },
+        {
+            'name': 'mobile_firendly_pages',
+            'description' :'Landing pages are mobile firendly',
+            'apply': mobile_firendly_pages, #low_quality_keywords
+            'listed': True,
+            'sheet_name': 'Non Mobile Friendly Landing Pages'
+        },
+        {
+            'name': 'landing_home_pages',
+            'description' :'Landing Page = homepage (no /anything at end of URL)',
+            'apply': landing_home_pages, #landing_home_pages
+            'listed': True,
+            'sheet_name': 'Hompepage Landing Pages'
+        },
+        {
+            'name': 'low_quality_keywords',
+            'description' :'Has Kewqords with Quality score less then 5',
+            'apply': low_quality_keywords, # has_negatives
+            'listed': True,
+            'sheet_name': 'Low Quality Keywords'
+        },
+        {
+            'name': 'has_modifiers',
+            'description' :'Enabled CPC campaigns have bid modifiers',
+            'apply': has_modifiers, #has_modifiers
+            'listed': True,
+            'sheet_name': 'Bid Modifiers'
+        },
+        {
+            'name': 'location_interested',
+            'description' :'Enabled cmapigns has locations has "interested in" option',
+            'apply': location_interested, #location_interested
+            'listed': True,
+            'sheet_name': 'Location Settings'
         }
     ]
     results = []
@@ -665,18 +1140,14 @@ def build_sheet_id(customerId):
             "title": 'All Ckecks'
             }
         }
-        # }
-        # {
-        #   "properties": {
-        #        "title": 'Second Sheet'
-        #   },
-        # }
         ]
     }
     for item in checks:
         results.append(item['apply'](adwords_client, item, list=True))
+        ## TODO: move list creation to rows check!!
         if item.get('listed', False):
-            spreadsheet_body['sheets'].append({ "properties": { "title": item['name']}})
+            spreadsheet_body['sheets'].append({ "properties": { "title": item.get('sheet_name')}})
+            print ('creating sheet: ' + "'{0}'".format(item.get('sheet_name')))
     sheets_service = googleapiclient.discovery.build('sheets', 'v4', credentials=creds)
 
     request = sheets_service.spreadsheets().create(body=spreadsheet_body)
@@ -690,9 +1161,10 @@ def build_sheet_id(customerId):
             body = {
                 'values': item.get('rows', [[]])
             }
-
+            if app.debug:
+                print (item.get('rows'))
             result = sheets_service.spreadsheets().values().update(
-            spreadsheetId=sheet_id, range=checks[index]['name'],
+            spreadsheetId=sheet_id, range="'{0}'".format(checks[index]['sheet_name']),
             valueInputOption='RAW', body=body).execute()
     body = {
         'values': main_results
@@ -819,7 +1291,7 @@ def get_reports_rows(report_string):
             affected.append(row)
     return affected
 
-def get_campain_ids(client):
+def get_campaigns_ids(client):
     # returns all campaigns IDs
     campaign_service = client.GetService('CampaignService', version='v201809')
     campaigns_selector = {
@@ -831,7 +1303,50 @@ def get_campain_ids(client):
         print (f"fonud {campaigns.totalNumEntries}")
         for campaign in campaigns['entries']:
             campaign_ids.append(campaign['id'])
-            print(f"campaign name {campaign.name}")
+            # print(f"campaign name {campaign.name}")
+    else:
+        print ('No campaigns were found.')
+    return campaign_ids
+
+def get_selector_entries(service, selector):
+    offset = int(selector['paging']['startIndex'])
+    more_pages = True
+    all_entries = []
+    while more_pages:
+        page = service.get(selector)
+        if 'entries' in page:
+            all_entries = all_entries + page['entries']
+        offset += PAGE_SIZE
+        selector['paging']['startIndex'] = str(offset)
+        more_pages = offset < int(page['totalNumEntries'])
+    return all_entries
+
+
+
+def get_search_campaigns_ids(client):
+    # returns all campaigns IDs
+    campaign_service = client.GetService('CampaignService', version='v201809')
+    campaigns_selector = {
+      'fields': ['Id', 'Name', 'Status'],
+      'predicates': [
+          {
+            'field': 'AdvertisingChannelType',
+            'operator': 'IN',
+            'values': ['SEARCH', 'MULTI_CHANNEL']
+          },
+          {
+            'field': 'Status',
+            'operator': 'EQUALS',
+            'values': 'ENABLED'         }
+      ]
+    }
+    campaigns = campaign_service.get(campaigns_selector)
+    campaign_ids = []
+    if 'entries' in campaigns:
+        print (f"fonud {campaigns.totalNumEntries}")
+        for campaign in campaigns['entries']:
+            campaign_ids.append(campaign['id'])
+            # print(f"campaign name {campaign.name}")
     else:
         print ('No campaigns were found.')
     return campaign_ids
