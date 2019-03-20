@@ -24,7 +24,7 @@ from firebase_admin import credentials as firebase_module_credentials
 
 def defauls_period():
     day1 = datetime.datetime.today() - datetime.timedelta(days = 1)
-    date90 = day1 - datetime.timedelta(days = 90)
+    date90 = day1 - datetime.timedelta(days = 89)
     return {
         'end_date': day1.strftime('%Y%m%d'),
         'start_date': date90.strftime('%Y%m%d')
