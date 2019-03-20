@@ -17,8 +17,18 @@ import datetime
 import pickle
 import re
 
+import firebase_admin
+from firebase_admin import firestore
+from firebase_admin import credentials as firebase_module_credentials
 
 
+def defauls_period():
+    day1 = datetime.datetime.today() - datetime.timedelta(days = 1)
+    date90 = day1 - datetime.timedelta(days = 90)
+    return {
+        'end_date': day1.strftime('%Y%m%d'),
+        'start_date': date90.strftime('%Y%m%d')
+    }
 
 CLIENT_SECRETS_FILE = 'creds/client-creds.json'
 SHEET_SECRETS_FILE = 'creds/sheet_creds.json'
@@ -26,8 +36,16 @@ developer_token = 'kRqQZviBtOhZFDatpjTLmw'
 sheets_token = '1/M2iYW2N8Evip-ReUMK7Xix6jM6JYmVwZMPLUWSIxUFLbD9jO06plCyRUTZcjCdmx'
 PAGE_SIZE = 100
 CHANGE_LIMIT = 10
-DEFAULT_PERFOMANCE_PERIOD = 'LAST_30_DAYS'
+DEFAULT_PERFOMANCE_PERIOD = defauls_period() #'LAST_30_DAYS'
 
+FIRABASE_CRED_FILE = 'creds/firebase-key.json'
+firebase_credentials = firebase_module_credentials.Certificate(FIRABASE_CRED_FILE)
+firebase_app = firebase_admin.initialize_app(credential=firebase_credentials)
+# ,
+#     options={
+#          'databaseURL': 'https://test-python-customizers.firebaseio.com/'
+#     })
+db = firestore.client()
 
 app = flask.Flask(__name__,
 static_folder = "../dist/static",
@@ -116,25 +134,17 @@ def oauth2callback():
     except googleapiclient.errors.HttpError:
       return 'googleapiclient.errors.HttpError', 400
 
-
-
     flask.session['user'] = {
         'gid': info['id'],
         'name': info['name'],
         'email': info['email']
         }
 
-    # return flask.jsonify({'user': 'authorized'})
-    # if app.debug:
-        # redirect to dev.accounts
     return  flask.jsonify({
         'gid': info['id'],
         'name': info['name'],
         'email': info['email']
         })
-    # else:
-    #     # set coockie
-    #     return 'authorized'
 
 @app.route('/get_user')
 def get_user():
@@ -142,6 +152,8 @@ def get_user():
         return flask.jsonify(flask.session['user'])
     else:
         raise InvalidUsage('no user data in session', status_code=410)
+
+
 
 @app.route('/get_client_list')
 def get_clinet_list():
@@ -193,6 +205,17 @@ def get_clinet_list():
       #              credentials in a persistent database instead.
     # flask.session['credentials'] = credentials_to_dict(credentials)
     return flask.jsonify(render_list)
+
+@app.route('/get_profile/<clientId>')
+def get_profile(clientId):
+    adwords_client = get_adwords_client()
+    adwords_client.SetClientCustomerId(clientId)
+    customer_service = adwords_client.GetService('CustomerService', version='v201809')
+    account = customer_service.getCustomers()
+
+    if app.debug:
+        print (account)
+    return flask.jsonify({ 'id': account[0]['customerId'], 'name': account[0]['descriptiveName'] })
 
 @app.route('/check_account/<customerId>/<check_service>')
 def check_account(customerId, check_service):
@@ -535,7 +558,7 @@ def low_quality_keywords(adwords_client, item, list=None):
         return res
     return flask.jsonify(res)
 
-def has_negatives(adwords_client, item):
+def has_negatives(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
 
@@ -577,9 +600,11 @@ def has_negatives(adwords_client, item):
         res['flag'] = 'red'
     else:
         res['flag'] = 'green'
+    if list:
+        return res
     return flask.jsonify(res)
 
-def has_changes(adwords_client, item):
+def has_changes(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
     # CustomerSyncService:
@@ -634,9 +659,11 @@ def has_changes(adwords_client, item):
     if app.debug:
         for row in changes[:4]:
             print(row)
+    if list:
+        return res
     return flask.jsonify(res)
 
-def has_more3_ads(adwords_client, item):
+def has_more3_ads(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
@@ -673,9 +700,12 @@ def has_more3_ads(adwords_client, item):
                 print (row)
     else:
         res['flag'] = 'green'
+    if list:
+        return res
+
     return flask.jsonify(res)
 
-def search_ctr(adwords_client, item):
+def search_ctr(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
@@ -685,23 +715,30 @@ def search_ctr(adwords_client, item):
                   .Select('AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'Ctr')
                   .From('ACCOUNT_PERFORMANCE_REPORT')
                   .Where('AdNetworkType1').EqualTo('SEARCH')
-                  .During(DEFAULT_PERFOMANCE_PERIOD)
+                  .During(**DEFAULT_PERFOMANCE_PERIOD)
                   .Build())
     header = ['AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'Ctr']
     stream_data = report_downloader.DownloadReportAsStringWithAwql(
         report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, skip_column_header=True)
-    row = get_reports_rows(stream_data)[0]
-    if app.debug:
-        print (row)
-    ctr = float(row[header.index('Ctr')].strip('%') ) / 100
-    res['flag'] = 'green'
-    if (ctr < 0.03):
-        res['flag'] = 'amber'
-    if ctr < 0.02:
-        res['flag'] = 'red'
+    rows = get_reports_rows(stream_data)
+    if rows != []:
+        row = rows[0]
+        if app.debug:
+            print (row)
+        ctr = float(row[header.index('Ctr')].strip('%') ) / 100
+        res['flag'] = 'green'
+        if (ctr < 0.03):
+            res['flag'] = 'amber'
+        if ctr < 0.02:
+            res['flag'] = 'red'
+    else:
+        res['flag'] = 'other'
+    if list:
+        return res
+
     return flask.jsonify(res)
 
-def ave_position(adwords_client, item):
+def ave_position(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
 
@@ -712,21 +749,28 @@ def ave_position(adwords_client, item):
                   .Select('AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'AveragePosition')
                   .From('ACCOUNT_PERFORMANCE_REPORT')
                   .Where('AdNetworkType1').EqualTo('SEARCH')
-                  .During(DEFAULT_PERFOMANCE_PERIOD)
+                  .During(**DEFAULT_PERFOMANCE_PERIOD)
                   .Build())
     header = ['AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'AveragePosition']
     stream_data = report_downloader.DownloadReportAsStringWithAwql(
         report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, skip_column_header=True)
-    row = get_reports_rows(stream_data)[0]
+    rows = get_reports_rows(stream_data)
+    if rows == []:
+        res['flag'] = 'other'
+        return flask.jsonify(res)
+    row = rows[0]
     if app.debug:
         print (row)
     av_position = float(row[header.index('AveragePosition')])
     res['flag'] = 'green'
     if (av_position > 2.1):
         res['flag'] = 'amber'
+    if list:
+        return res
+
     return flask.jsonify(res)
 
-def have_trials(adwords_client, item):
+def have_trials(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
 
@@ -737,12 +781,16 @@ def have_trials(adwords_client, item):
                   .Select('AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'Cost')
                   .From('ACCOUNT_PERFORMANCE_REPORT')
                   .Where('AdNetworkType1').EqualTo('SEARCH')
-                  .During(DEFAULT_PERFOMANCE_PERIOD)
+                  .During(**DEFAULT_PERFOMANCE_PERIOD)
                   .Build())
     header = ['AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'Cost']
     stream_data = report_downloader.DownloadReportAsStringWithAwql(
         report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, skip_column_header=True)
-    row = get_reports_rows(stream_data)[0]
+    rows = get_reports_rows(stream_data)
+    if rows == []:
+        res['flag'] = 'other'
+        return flask.jsonify(res)
+    row = rows[0]
     if app.debug:
         print (row)
     res['flag'] = 'amber'
@@ -783,6 +831,9 @@ def have_trials(adwords_client, item):
                 for entry in trials['entries'][:3]:
                     print (entry['CampaignName'])
             res['flag'] = 'green'
+    if list:
+        return res
+
     return flask.jsonify(res)
 
 def has_modifiers(adwords_client, item, list=None):
@@ -815,51 +866,56 @@ def has_modifiers(adwords_client, item, list=None):
 
     campaign_ids = [campaign['id'] for campaign in campaign_entries]
 
-    # CustomerSyncService:
-    criterion_service = adwords_client.GetService(
-        'CampaignCriterionService', version='v201809')
-    offset = 0
-    selector = {
-        'fields': ['CampaignId', 'CampaignCriterionStatus', 'CriteriaType', 'BidModifier'],
-        'paging': {
-            'startIndex': str(offset),
-            'numberResults': str(PAGE_SIZE)
-        },
-        'predicates': [
-            {
-              'field': 'CriteriaType',
-              'operator': 'NOT_EQUALS',
-              'values': 'KEYWORD'
-            },
-            {
-              'field': 'BidModifier',
-              'operator': 'GREATER_THAN',
-              'values': 0.0
-            },
-            {
-              'field': 'CampaignId',
-              'operator': 'IN',
-              'values': campaign_ids
-            }
-        ]
-    }
-    selector_entries = get_selector_entries(criterion_service, selector)
-    affected = []
-    header = ['campaignId', 'campaignCriterionStatus', 'criterion', 'bidModifier']
-    campaigns_ok = []
-    if selector_entries != []:
-        for criterion in selector_entries: #page['entries']:
-            row = [criterion[key] for key in header]
-            row[header.index('criterion')] = row[header.index('criterion')]['type']
-            row[header.index('bidModifier')] = row[header.index('bidModifier')] - 1
-            campaigns_ok.append(row[header.index('campaignId')])
-            # affected.append(row)
-            # campaign_dict[row[header.index('campaignId')]]['hasModifiers'] = True
-    for campaign in campaign_entries:
-        if not campaign['id'] in campaigns_ok:
-            affected.append([campaign['name'], 'No Modifiers'])
+    if campaign_ids != []:
 
-    affected = [['Campaign name', 'Has Modifiers']] + affected
+        # CustomerSyncService:
+        criterion_service = adwords_client.GetService(
+            'CampaignCriterionService', version='v201809')
+        offset = 0
+        selector = {
+            'fields': ['CampaignId', 'CampaignCriterionStatus', 'CriteriaType', 'BidModifier'],
+            'paging': {
+                'startIndex': str(offset),
+                'numberResults': str(PAGE_SIZE)
+            },
+            'predicates': [
+                {
+                  'field': 'CriteriaType',
+                  'operator': 'NOT_EQUALS',
+                  'values': 'KEYWORD'
+                },
+                {
+                  'field': 'BidModifier',
+                  'operator': 'GREATER_THAN',
+                  'values': 0.0
+                },
+                {
+                  'field': 'CampaignId',
+                  'operator': 'IN',
+                  'values': campaign_ids
+                }
+            ]
+        }
+        selector_entries = get_selector_entries(criterion_service, selector)
+        affected = []
+        header = ['campaignId', 'campaignCriterionStatus', 'criterion', 'bidModifier']
+        campaigns_ok = []
+        if selector_entries != []:
+            for criterion in selector_entries: #page['entries']:
+                row = [criterion[key] for key in header]
+                row[header.index('criterion')] = row[header.index('criterion')]['type']
+                row[header.index('bidModifier')] = row[header.index('bidModifier')] - 1
+                campaigns_ok.append(row[header.index('campaignId')])
+                # affected.append(row)
+                # campaign_dict[row[header.index('campaignId')]]['hasModifiers'] = True
+        for campaign in campaign_entries:
+            if not campaign['id'] in campaigns_ok:
+                affected.append([campaign['name'], 'No Modifiers'])
+
+        affected = [['Campaign name', 'Has Modifiers']] + affected
+    else:
+        #no campaigns
+        affected = [['Campaign name', 'Has Modifiers']] + [['No Enabled Campaigns', 'No Data']]
     if app.debug:
         print (affected[:5])
     if len(affected) > 1:
@@ -871,7 +927,7 @@ def has_modifiers(adwords_client, item, list=None):
         return res
     return flask.jsonify(res)
 
-def has_customizers(adwords_client, item):
+def has_customizers(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
     # GET CPC campaigns:
@@ -902,6 +958,9 @@ def has_customizers(adwords_client, item):
         res['flag'] = 'green'
     else:
         res['flag'] = 'red'
+    if list:
+        return res
+
     return flask.jsonify(res)
 
 def location_interested(adwords_client, item, list=None):
@@ -954,7 +1013,7 @@ def cost_per_conversions(adwords_client, item, list=None):
     report_query = (adwords.ReportQueryBuilder()
                   .Select('ConversionTypeName', 'Conversions', 'CostPerConversion')
                   .From('ACCOUNT_PERFORMANCE_REPORT')
-                  .During(DEFAULT_PERFOMANCE_PERIOD)
+                  .During(**DEFAULT_PERFOMANCE_PERIOD)
                   .Build())
     header = ['Action Name', 'Conversions', 'Cost per conversion']
     stream_data = report_downloader.DownloadReportAsStringWithAwql(
@@ -966,7 +1025,8 @@ def cost_per_conversions(adwords_client, item, list=None):
     if app.debug:
         print (rows[0:6])
     if list:
-        return [header] + rows
+        res['rows'] = [header] + rows
+        return res
     res['rows'] = [header] + rows
     return flask.jsonify(res)
 
@@ -977,7 +1037,7 @@ def impressions_share(adwords_client, item, list=None):
                       .Select('Impressions', 'SearchBudgetLostImpressionShare', 'SearchRankLostImpressionShare')
                       .From('ACCOUNT_PERFORMANCE_REPORT')
                       .Where('AdNetworkType1').EqualTo('SEARCH')
-                      .During(DEFAULT_PERFOMANCE_PERIOD)
+                      .During(**DEFAULT_PERFOMANCE_PERIOD)
                       .Build())
         header = ['Search Immpressions Recieved', 'Lost ImpressionShare (Budget)', 'Lost ImpressionShare (Rank)']
         stream_data = report_downloader.DownloadReportAsStringWithAwql(
@@ -989,7 +1049,8 @@ def impressions_share(adwords_client, item, list=None):
         if app.debug:
             print (rows[0:6])
         if list:
-            return [header] + rows
+            res['rows'] = [header] + rows
+            return res
         res['rows'] = [header] + rows
         return flask.jsonify(res)
 
@@ -1014,7 +1075,7 @@ def bid_strategy(adwords_client, item, list=None):
     report_query = (adwords.ReportQueryBuilder()
                   .Select('BiddingStrategyType', 'Cost')
                   .From('CAMPAIGN_PERFORMANCE_REPORT')
-                  .During(DEFAULT_PERFOMANCE_PERIOD)
+                  .During(**DEFAULT_PERFOMANCE_PERIOD)
                   .Build())
     header = ['Bidding Strategy Type', 'Cost']
     stream_data = report_downloader.DownloadReportAsStringWithAwql(
@@ -1035,15 +1096,13 @@ def bid_strategy(adwords_client, item, list=None):
     stat_rows = [[key, value] for key, value in stat_object.items()]
     if app.debug:
         print (stat_rows[:6])
-    if list:
-        return [header] + stat_rows
     res['flag'] = 'green'
     if total_cost > 3000 and non_manual:
         res['flag'] = 'amber'
+    if list:
+        res['rows'] = [header] + stat_rows
+        return res
     return flask.jsonify(res)
-    # return flask.jsonify([header] + [[key, value] for key, value in stat_object.items()])
-
-
 
 @app.route('/create_sheet/<customerId>')
 def build_sheet_id(customerId):
@@ -1068,9 +1127,38 @@ def build_sheet_id(customerId):
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
+    #saving to firebasei
+
+    user = flask.session['user']
+    lead_ref = db.collection('leads').document(user['gid']) #user['gid']
+
+
 
     adwords_client = get_adwords_client()
     adwords_client.SetClientCustomerId(customerId)
+    customer_service = adwords_client.GetService('CustomerService', version='v201809')
+    account = customer_service.getCustomers()[0]
+
+    try:
+        lead_data = lead_ref.get().to_dict()
+        if lead_data is None:
+            #user doesn't exists
+            lead_data = {
+                'id': user['gid'],
+                'name' : user['name'],
+                'email' : user['email'],
+                'checks': { customerId : [] }
+            }
+            lead_ref.set(lead_data)
+    except google.cloud.exceptions.NotFound:
+        print ('user not found')
+        lead_data = {
+            'id': user['gid'],
+            'name' : user['name'],
+            'email' : user['email'],
+            'checks': { customerId : [] }
+        }
+        lead_ref.set(lead_data)
 
     # sheet checks
     checks = [
@@ -1115,6 +1203,36 @@ def build_sheet_id(customerId):
             'sheet_name': 'Low Quality Keywords'
         },
         {
+            'name': 'has_negatives',
+            'description' :'Has Negatives',
+            'apply': has_negatives # has_changes
+        },
+        {
+            'name': 'has_changes',
+            'description' :'Change History Has More Than 10 changes in period (last 90 days)',
+            'apply': has_changes # cost_per_conversions
+        },
+        {
+            'name': 'has_more3_ads',
+            'description' :'Ad Groups Have Three Or Move Ads',
+            'apply': has_more3_ads # search_ctr
+        },
+        {
+            'name': 'search_ctr',
+            'description' :'Search CTR is Less Than 3%',
+            'apply': search_ctr # ave_position
+        },
+        {
+            'name': 'ave_position',
+            'description' :'Average Position is Better than 2.1',
+            'apply': ave_position # have_trials
+        },
+        {
+            'name': 'have_trials',
+            'description' :'High Spending Account has active Trial Campaigns',
+            'apply': have_trials # have_trials
+        },
+        {
             'name': 'has_modifiers',
             'description' :'Enabled CPC campaigns have bid modifiers',
             'apply': has_modifiers, #has_modifiers
@@ -1122,17 +1240,44 @@ def build_sheet_id(customerId):
             'sheet_name': 'Bid Modifiers'
         },
         {
+            'name': 'has_customizers',
+            'description' :'Account has ad customized feeds',
+            'apply': has_customizers #location_interested
+        },
+        {
+            'name': 'bid_strategy',
+            'description' :'Account has non manual strategies (applicable for spending over 3K)',
+            'apply': bid_strategy, #bid_strategy
+            'listed': True,
+            'sheet_name': 'Bid Strategies'
+        },
+        {
             'name': 'location_interested',
             'description' :'Enabled cmapigns has locations has "interested in" option',
             'apply': location_interested, #location_interested
             'listed': True,
             'sheet_name': 'Location Settings'
+        },
+        {
+            'name': 'cost_per_conversions',
+            'description' :'Cost Per Conversions',
+            'apply': cost_per_conversions, # impressions_share
+            'listed': True,
+            'sheet_name': 'Cost Per Conversions'
+        },
+        {
+            'name': 'impressions_share',
+            'description' :'Simpression Share',
+            'apply': impressions_share, # impressions_share
+            'listed': True,
+            'sheet_name': 'Impressions Share'
         }
+
     ]
     results = []
     spreadsheet_body = {
         'properties': {
-            'title': 'Dummy Sheet'
+            'title': 'Clicks in Context Google Ads Health Check : ' + account['descriptiveName']
         },
         "sheets": [
         {
@@ -1143,20 +1288,36 @@ def build_sheet_id(customerId):
         ]
     }
     for item in checks:
-        results.append(item['apply'](adwords_client, item, list=True))
         ## TODO: move list creation to rows check!!
+        results.append(item['apply'](adwords_client, item, list=True))
         if item.get('listed', False):
             spreadsheet_body['sheets'].append({ "properties": { "title": item.get('sheet_name')}})
             print ('creating sheet: ' + "'{0}'".format(item.get('sheet_name')))
+
     sheets_service = googleapiclient.discovery.build('sheets', 'v4', credentials=creds)
 
     request = sheets_service.spreadsheets().create(body=spreadsheet_body)
     response = request.execute()
     sheet_url = response.get('spreadsheetUrl')
+    lead_checks = lead_data['checks']
+    lead_checks[customerId] = lead_checks.get(customerId, [])
+    lead_checks[customerId].append({
+        'date': datetime.datetime.today().strftime('%Y-%m-%d'),
+        'account_name': account['descriptiveName'],
+        'sheetUrl': sheet_url
+    })
+    lead_ref.set({
+        'checks' : lead_checks
+    }, merge=True)
     sheet_id = response.get('spreadsheetId')
     main_results = []
     for index, item in enumerate(results):
-        main_results.append([item['description'], item['flag']])
+        try:
+            item.get('description', False)
+        except:
+            print (checks[index])
+        if item.get('description', False) and item.get('flag', False):
+            main_results.append([item['description'], item['flag']])
         if checks[index].get('listed', False):
             body = {
                 'values': item.get('rows', [[]])
