@@ -16,6 +16,12 @@ import csv
 import datetime
 import pickle
 import re
+import asyncio
+import logging
+from logging.handlers import RotatingFileHandler
+import functools
+import inspect
+
 
 import firebase_admin
 from firebase_admin import firestore
@@ -41,31 +47,39 @@ DEFAULT_PERFOMANCE_PERIOD = defauls_period() #'LAST_30_DAYS'
 FIRABASE_CRED_FILE = 'creds/firebase-key.json'
 firebase_credentials = firebase_module_credentials.Certificate(FIRABASE_CRED_FILE)
 firebase_app = firebase_admin.initialize_app(credential=firebase_credentials)
-# ,
-#     options={
-#          'databaseURL': 'https://test-python-customizers.firebaseio.com/'
-#     })
+
 db = firestore.client()
 
 app = flask.Flask(__name__,
 static_folder = "../dist/static",
 template_folder = "../dist")
 
+handler = RotatingFileHandler('log/cic-ads.log', maxBytes=200000, backupCount=5)
+formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+handler.setFormatter(formatter)
+handler.setLevel(logging.DEBUG)
+app.logger.addHandler(handler)  # attach the handler to the app's logger
+
 app.secret_key = 'cqoOyBUDkUpVsxIilDZRUcEV'
+
+async def asyncator(loop, func, *args, **kwargs):
+    parted = functools.partial(func, **kwargs)
+    result = await loop.run_in_executor(None, parted, *args)
+    return result
 
 @app.route('/')
 def hello_world():
-    # return 'Hello, World!' + flask.url_for('authorize', _external=True)
+    print('stupid print')
+    app.logger.info('app started successfully')
+    app.logger.warning('app started successfully, but tried to log warnings!', exc_info=True)
+    app.logger.error('app started successfully, but tried to log errors!', exc_info=True)
     return flask.render_template('index.html')
 
 if not app.debug:
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def catch_all(path):
-        # if app.debug:
-        #     return requests.get('http://localhost:8080/{}'.format(path)).text
         return flask.render_template("index.html")
-
 
 @app.route('/authorize')
 def authorize():
@@ -74,8 +88,6 @@ def authorize():
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile'])
 
-    # change this!!
-    # flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
     flow.redirect_uri = flask.request.url_root + 'oauth-callback'
     if app.debug:
         flow.redirect_uri = 'http://localhost:8080/oauth-callback'  # flask.url_for('oauth2callback')
@@ -97,9 +109,6 @@ def oauth2callback():
     # Specify the state when creating the flow in the callback so that it can
     # verified in the authorization server response.
 
-    #state = flask.session['state']
-    # user_id = flask.session['userId']
-
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
       CLIENT_SECRETS_FILE, scopes=[oauth2.GetAPIScope('adwords'),
       'https://www.googleapis.com/auth/userinfo.email',
@@ -110,9 +119,6 @@ def oauth2callback():
 
     # Use the authorization server's response to fetch the OAuth 2.0 tokens.
     try:
-        # authorization_response = flask.request.url
-        # print (authorization_response)
-        print (flask.request.args)
         flow.fetch_token(code=flask.request.args.get('code', ''))
         # pass
     except:
@@ -153,8 +159,6 @@ def get_user():
     else:
         raise InvalidUsage('no user data in session', status_code=410)
 
-
-
 @app.route('/get_client_list')
 def get_clinet_list():
     adwords_client = get_adwords_client()
@@ -181,8 +185,6 @@ def get_clinet_list():
             listed_account['child'] = []
             adwords_managed_client = get_adwords_client()
             adwords_managed_client.SetClientCustomerId(customer['customerId'])
-            # adwords_managed_client = adwords.AdWordsClient(
-            # developer_token, oauth2_client, user_agent, client_customer_id=customer['customerId'])  #client_customer_id=client_customer_id
             managed_customer_service = adwords_managed_client.GetService('ManagedCustomerService', version='v201809')
             man_selector = {
                 'fields': ['CustomerId', 'Name', 'CanManageClients'],
@@ -200,10 +202,6 @@ def get_clinet_list():
                         'canManageClients': managed_account['canManageClients']
                     })
         render_list.append(listed_account)
-
-      # ACTION ITEM: In a production app, you likely want to save these
-      #              credentials in a persistent database instead.
-    # flask.session['credentials'] = credentials_to_dict(credentials)
     return flask.jsonify(render_list)
 
 @app.route('/get_profile/<clientId>')
@@ -213,15 +211,25 @@ def get_profile(clientId):
     customer_service = adwords_client.GetService('CustomerService', version='v201809')
     account = customer_service.getCustomers()
 
-    if app.debug:
-        print (account)
     return flask.jsonify({ 'id': account[0]['customerId'], 'name': account[0]['descriptiveName'] })
 
 @app.route('/check_account/<customerId>/<check_service>')
 def check_account(customerId, check_service):
     adwords_client = get_adwords_client()
     adwords_client.SetClientCustomerId(customerId)
-    checks = [{
+    checks = [
+    {
+        'name': 'conversions_check',
+        'description' :'Any conversions set up in tools>conversions?',
+        'apply': check_convesions_exist
+    },
+    {
+        'name': 'broad_modifiers_check',
+        'description' :'Full broad matches (not modifier)',
+        'apply': full_broad_exist,
+        'listed': True
+    },
+    {
         'name': 'conversions_check',
         'description' :'Any conversions set up in tools>conversions?',
         'apply': check_convesions_exist
@@ -320,8 +328,12 @@ def check_account(customerId, check_service):
     }
     ]
     callee = next((item for item in checks if item['name'] == check_service), None)
+
     if callee['apply']:
-            return callee['apply'](adwords_client, callee)
+        check_result = callee['apply'](adwords_client, callee)
+        ## COMBAK:
+        # return flask.jsonify(check_result)
+        return callee['apply'](adwords_client, callee)
     else:
         raise InvalidUsage('unknown service', status_code=410)
 # check functions
@@ -339,6 +351,7 @@ def check_convesions_exist(adwords_client, item, list=None):
     conversions = tracker_service.get(selector)
     res = {}
     res['description'] = item['description']
+    app.logger.info('Conversions calculation complete %s', conversions.totalNumEntries)
     if conversions.totalNumEntries > 0:
         res['flag'] = 'green'
     else:
@@ -346,42 +359,7 @@ def check_convesions_exist(adwords_client, item, list=None):
     if list:
         return res
     return flask.jsonify(res)
-
-def full_broad_exist_(adwords_client, item, list=None):
-    criteria_service = adwords_client.GetService('AdGroupCriterionService', version='v201809')
-    offset = 0
-    selector = {
-        'fields': ['KeywordText', 'KeywordMatchType', 'AdGroupId'],
-        'paging': {
-            'startIndex': str(offset),
-            'numberResults': str(PAGE_SIZE)
-        },
-        'predicates': [
-            {
-              'field': 'IsNegative',
-              'operator': 'EQUALS',
-              'values': False
-            },
-            {
-              'field': 'KeywordText',
-              'operator': 'DOES_NOT_CONTAIN',
-              'values': '+'
-            }
-        ]
-    }
-    res = {}
-    res['description'] = item['description']
-    keywords = criteria_service.get(selector)
-    if keywords.totalNumEntries > 0:
-        res['flag'] = 'red'
-    else:
-        res['flag'] = 'green'
-    if list:
-        rows =[['KeywordText', 'AdGroupId']] + [[keyword['criterion']['text'], keyword['adGroupId']] for keyword in keywords['entries']]
-        # print (rows[:5])
-        res['rows'] = rows
-        return res
-    return flask.jsonify(res)
+    # return res
 
 def full_broad_exist(adwords_client, item, list=None):
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
@@ -406,14 +384,15 @@ def full_broad_exist(adwords_client, item, list=None):
     for row in reader:
         if row != []:
             affected.append(row)
-            print(row)
     res = {}
     res['description'] = item['description']
-    print (affected[:5])
     if len(affected) > 1:
         res['flag'] = 'red'
     else:
         res['flag'] = 'green'
+
+    app.logger.info('%s complete with flag %s', inspect.currentframe().f_code.co_name, res['flag'])
+
     if list:
         # rows =[['KeywordText', 'AdGroupId']] + [[keyword['criterion']['text'], keyword['adGroupId']] for keyword in keywords['entries']]
         # print (rows[:5])
@@ -433,7 +412,6 @@ def short_broad_exist(adwords_client, item, list=None):
                   .Where('Status').EqualTo('ENABLED')
                   .Where('AdGroupStatus').EqualTo('ENABLED')
                   .Where('CampaignId').In(*get_search_campaigns_ids(adwords_client))
-                  # TODO add campaign Ids filter
                   .During('LAST_MONTH')
                   .Build())
     stream_data = report_downloader.DownloadReportAsStringWithAwql(
@@ -444,17 +422,18 @@ def short_broad_exist(adwords_client, item, list=None):
     for row in reader:
         if row != [] and len(row[0].split()) < 3:
             affected.append(row)
-            print(row)
     res = {}
     res['description'] = item['description']
-    print (affected[:5])
     if len(affected) > 1:
         res['flag'] = 'red'
     else:
         res['flag'] = 'green'
+    # if list:
+    res['rows'] = affected
+
+    app.logger.info('%s complete with flag %s', inspect.currentframe().f_code.co_name, res['flag'])
+
     if list:
-        # rows =[['KeywordText', 'AdGroupId']] + [[keyword['criterion']['text'], keyword['adGroupId']] for keyword in keywords['entries']]
-        # print (rows[:5])
         res['rows'] = affected
         return res
     return flask.jsonify(res)
@@ -477,13 +456,15 @@ def mobile_firendly_pages(adwords_client, item, list=None):
     for row in reader:
         if row != []:
             affected.append(row)
-            print(row)
     res = {}
     res['description'] = item['description']
     if len(affected) > 1:
         res['flag'] = 'amber'
     else:
         res['flag'] = 'green'
+
+    app.logger.info('%s complete with flag %s', inspect.currentframe().f_code.co_name, res['flag'])
+
     if list:
         res['rows'] = affected
         return res
@@ -509,7 +490,6 @@ def landing_home_pages(adwords_client, item, list=None):
         if row != []:
             if not head:
                 head = True
-                print(row)
                 url_index = row.index('Expanded landing page')
                 affected.append(row)
             else:
@@ -522,6 +502,9 @@ def landing_home_pages(adwords_client, item, list=None):
         res['flag'] = 'amber'
     else:
         res['flag'] = 'green'
+
+    app.logger.info('%s complete with flag %s', inspect.currentframe().f_code.co_name, res['flag'])
+
     if list:
         res['rows'] = affected
         return res
@@ -546,13 +529,13 @@ def low_quality_keywords(adwords_client, item, list=None):
     for row in reader:
         if row != []:
             affected.append(row)
-            print(row)
     res = {}
     res['description'] = item['description']
     if len(affected) > 1:
         res['flag'] = 'amber'
     else:
         res['flag'] = 'green'
+    app.logger.info('%s complete with flag %s', inspect.currentframe().f_code.co_name, res['flag'])
     if list:
         res['rows'] = affected
         return res
@@ -591,15 +574,16 @@ def has_negatives(adwords_client, item, list=None):
         ]
     }
     negative_keywords_lists = sets_service.get(selector)
-    if 'entries' in negative_keywords_lists:
-        for entry in negative_keywords_lists['entries'][:3]:
-            print (entry['sharedSetId'])
-            print (entry['name'])
+    # if 'entries' in negative_keywords_lists:
+    #     for entry in negative_keywords_lists['entries'][:3]:
+    #         print (entry['sharedSetId'])
+    #         print (entry['name'])
 
     if (not 'entries' in negative_keywords_lists) or (len(rows) == 0):
         res['flag'] = 'red'
     else:
         res['flag'] = 'green'
+    app.logger.info('%s complete with flag %s', inspect.currentframe().f_code.co_name, res['flag'])
     if list:
         return res
     return flask.jsonify(res)
@@ -1130,10 +1114,8 @@ def build_sheet_id(customerId):
     #saving to firebasei
 
     user = flask.session['user']
-    lead_ref = db.collection('leads').document(user['gid']) #user['gid']
-
-
-
+    # Reference to firebase user document
+    lead_ref = db.collection('leads').document(user['gid'])
     adwords_client = get_adwords_client()
     adwords_client.SetClientCustomerId(customerId)
     customer_service = adwords_client.GetService('CustomerService', version='v201809')
@@ -1282,17 +1264,48 @@ def build_sheet_id(customerId):
         "sheets": [
         {
         "properties": {
-            "title": 'All Ckecks'
+            "title": 'All Checks'
             }
         }
         ]
     }
+    # adding loop support
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    queue = []
     for item in checks:
-        ## TODO: move list creation to rows check!!
-        results.append(item['apply'](adwords_client, item, list=True))
-        if item.get('listed', False):
-            spreadsheet_body['sheets'].append({ "properties": { "title": item.get('sheet_name')}})
-            print ('creating sheet: ' + "'{0}'".format(item.get('sheet_name')))
+        queue.append(asyncator(loop, item['apply'], adwords_client, item, list=True))
+    async_resutls = loop.run_until_complete(asyncio.gather(
+    *queue,
+    # asyncator(loop, abar, '11'),
+    # asyncator(loop, abar, '12'),
+    return_exceptions=True
+    ))
+    loop.close()
+
+
+    for idx, async_res in enumerate(async_resutls):
+        item = checks[idx]
+        if not isinstance(async_res, Exception):
+            results.append(async_res)
+            # print (async_res)
+            # app.logger.info('got async res with keys []%s]',','.join(async_res.keys) )
+            if item.get('listed', False):
+                app.logger.info('Creating sheet %s', item.get('sheet_name'))
+                spreadsheet_body['sheets'].append({ "properties": { "title": item.get('sheet_name')}})
+                print ('creating sheet: ' + "'{0}'".format(item.get('sheet_name')))
+        else:
+            print('oops something went wrong')
+            app.logger.exception(async_res)
+    # for item in checks:
+
+        # results.append(item['apply'](adwords_client, item, list=True))
+
+
+        # if async_res.get('listed', False):
+        #     spreadsheet_body['sheets'].append({ "properties": { "title": async_res.get('sheet_name')}})
+        #     print ('creating sheet: ' + "'{0}'".format(async_res.get('sheet_name')))
 
     sheets_service = googleapiclient.discovery.build('sheets', 'v4', credentials=creds)
 
@@ -1331,7 +1344,7 @@ def build_sheet_id(customerId):
         'values': main_results
     }
     result = sheets_service.spreadsheets().values().update(
-    spreadsheetId=sheet_id, range='All Ckecks',
+    spreadsheetId=sheet_id, range='All Checks',
     valueInputOption='RAW', body=body).execute()
 
     drive_service = googleapiclient.discovery.build('drive', 'v3', credentials=creds)
@@ -1385,7 +1398,7 @@ def build_sheet():
         "sheets": [
            {
              "properties": {
-             "title": 'All Ckecks'
+             "title": 'All Checks'
              },
            },
            {
@@ -1481,8 +1494,6 @@ def get_selector_entries(service, selector):
         selector['paging']['startIndex'] = str(offset)
         more_pages = offset < int(page['totalNumEntries'])
     return all_entries
-
-
 
 def get_search_campaigns_ids(client):
     # returns all campaigns IDs
