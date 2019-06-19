@@ -1,0 +1,9 @@
+backend/creds/
+backend/bin/
+backend/log/
+backend/lib/
+backend/include/
+backend/lib64
+backend/__pycache__
+backend/pyvenv.cfg
+backend/*.pickle
