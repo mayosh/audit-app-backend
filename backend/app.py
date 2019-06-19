@@ -83,12 +83,16 @@ if not app.debug:
 
 @app.route('/authorize')
 def authorize():
+    # flow = google_auth_oauthlib.flow.Flow(code_verifier=None)
+    # flow = flow.from_client_secrets_file(
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE, scopes=[oauth2.GetAPIScope('adwords'),
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile'])
 
     flow.redirect_uri = flask.request.url_root + 'oauth-callback'
+    # flow.code_verifier = 's23'
+    # flow.client_type = 'web'
     if app.debug:
         flow.redirect_uri = 'http://localhost:8080/oauth-callback'  # flask.url_for('oauth2callback')
 
@@ -106,6 +110,8 @@ def oauth2callback():
     if app.debug:
         print ('hello from oauth2callback. setting oauth_insecure to 1')
         os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+    if flask.request.url.startswith('http://'):
+        os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     # Specify the state when creating the flow in the callback so that it can
     # verified in the authorization server response.
 
@@ -113,6 +119,7 @@ def oauth2callback():
       CLIENT_SECRETS_FILE, scopes=[oauth2.GetAPIScope('adwords'),
       'https://www.googleapis.com/auth/userinfo.email',
       'https://www.googleapis.com/auth/userinfo.profile'], state=flask.request.args.get('state', ''))
+    flow.code_verifier = 's23'
     flow.redirect_uri = flask.request.url_root + 'oauth-callback'# flask.url_for('oauth2callback', _external=True)
     if app.debug:
         flow.redirect_uri = 'http://localhost:8080/oauth-callback'
@@ -123,6 +130,8 @@ def oauth2callback():
         # pass
     except:
         print("Unexpected error:", sys.exc_info()[0])
+        app.logger.error('oauth is broken', exc_info=True)
+        app.logger.warning(sys.exc_info()[0])
         raise InvalidUsage('no code', status_code=410)
 
 
