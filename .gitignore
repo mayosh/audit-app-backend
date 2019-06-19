@@ -7,3 +7,4 @@ backend/lib64
 backend/__pycache__
 backend/pyvenv.cfg
 backend/*.pickle
+backend/share

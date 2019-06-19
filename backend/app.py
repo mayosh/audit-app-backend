@@ -85,11 +85,13 @@ if not app.debug:
 def authorize():
     # flow = google_auth_oauthlib.flow.Flow(code_verifier=None)
     # flow = flow.from_client_secrets_file(
+    m_scopes=[oauth2.GetAPIScope('adwords'),
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile']
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, scopes=[oauth2.GetAPIScope('adwords'),
-        'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile'])
-
+        CLIENT_SECRETS_FILE, scopes=m_scopes)
+    if app.debug:
+        print (m_scopes)
     flow.redirect_uri = flask.request.url_root + 'oauth-callback'
     # flow.code_verifier = 's23'
     # flow.client_type = 'web'
@@ -101,7 +103,10 @@ def authorize():
           include_granted_scopes='true',  prompt='consent')
     # Store the state so the callback can verify the auth server response.
     flask.session['state'] = state
-    print (authorization_url)
+    flask.session['fl_config'] = flow.client_config
+    flask.session['fl_client_type'] = flow.client_type
+    flask.session['fl_code_verifier'] = flow.code_verifier
+    app.logger.info(authorization_url)
     # return 'some authorize <a href="' +  authorization_url + '"> click here to authorize</a>'
     return flask.jsonify({'authorization_url': authorization_url})
 
@@ -115,11 +120,29 @@ def oauth2callback():
     # Specify the state when creating the flow in the callback so that it can
     # verified in the authorization server response.
 
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-      CLIENT_SECRETS_FILE, scopes=[oauth2.GetAPIScope('adwords'),
-      'https://www.googleapis.com/auth/userinfo.email',
-      'https://www.googleapis.com/auth/userinfo.profile'], state=flask.request.args.get('state', ''))
-    flow.code_verifier = 's23'
+    cb_scopes=[oauth2.GetAPIScope('adwords'),
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile']
+
+    conf = {'web': flask.session['fl_config']}
+
+    # print (cb_scopes)
+
+    fsession, client_config = (
+            google_auth_oauthlib.helpers.session_from_client_config(conf, None))
+
+    flow = google_auth_oauthlib.flow.Flow(fsession, flask.session['fl_client_type'], client_config,
+            redirect_uri=None, code_verifier=flask.session['fl_code_verifier'])
+
+
+
+
+    # flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
+    #   CLIENT_SECRETS_FILE, scopes=[oauth2.GetAPIScope('adwords'),
+    #   'https://www.googleapis.com/auth/userinfo.email',
+    #   'https://www.googleapis.com/auth/userinfo.profile'], state=flask.request.args.get('state', ''))
+    # flow.code_verifier = 's23'
+
     flow.redirect_uri = flask.request.url_root + 'oauth-callback'# flask.url_for('oauth2callback', _external=True)
     if app.debug:
         flow.redirect_uri = 'http://localhost:8080/oauth-callback'
