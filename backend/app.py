@@ -69,10 +69,7 @@ async def asyncator(loop, func, *args, **kwargs):
 
 @app.route('/')
 def hello_world():
-    print('stupid print')
     app.logger.info('app started successfully')
-    app.logger.warning('app started successfully, but tried to log warnings!', exc_info=True)
-    app.logger.error('app started successfully, but tried to log errors!', exc_info=True)
     return flask.render_template('index.html')
 
 if not app.debug:
@@ -379,7 +376,10 @@ def check_account(customerId, check_service):
         check_result = callee['apply'](adwords_client, callee)
         ## COMBAK:
         # return flask.jsonify(check_result)
-        return callee['apply'](adwords_client, callee)
+        try:
+            return callee['apply'](adwords_client, callee)
+        except Exception as inst:
+            flask.abort(404)
     else:
         raise InvalidUsage('unknown service', status_code=410)
 # check functions
@@ -1334,6 +1334,7 @@ def build_sheet_id(customerId):
     asyncio.set_event_loop(loop)
     queue = []
     for item in checks:
+        item['imagename'] = None
         queue.append(asyncator(loop, item['apply'], adwords_client, item, list=True))
     async_resutls = loop.run_until_complete(asyncio.gather(
     *queue,
@@ -1356,6 +1357,7 @@ def build_sheet_id(customerId):
                 print ('creating sheet: ' + "'{0}'".format(item.get('sheet_name')))
         else:
             print('oops something went wrong')
+            app.logger.warning(f"bad result from {item['name']}")
             app.logger.exception(async_res)
     # for item in checks:
 
@@ -1452,7 +1454,7 @@ def build_sheet():
     sheets_service = googleapiclient.discovery.build('sheets', 'v4', credentials=creds)
     spreadsheet_body = {
         'properties': {
-            'title': 'Dummy Sheet'
+            'title': 'Ads Audit Results'
         },
         "sheets": [
            {
