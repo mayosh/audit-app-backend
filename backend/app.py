@@ -203,7 +203,16 @@ def get_clinet_list():
             'numberResults': str(PAGE_SIZE)
         }
     }
-    accounts = customer_service.getCustomers(selector)
+    try:
+        accounts = customer_service.getCustomers(selector)
+    except Exception as inst:
+        # print(type(inst))    # the exception instance
+        print(inst.args[0])     # arguments stored in .args
+        # print(inst)          # __str__ allows args to be printed directly,
+        if 'NOT_ADS' in inst.args[0]:
+            return flask.jsonify({'status':'no_ads'})
+        else:
+            return flask.abort(404)
 
     render_list = []
     for customer in accounts:
