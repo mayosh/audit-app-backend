@@ -203,7 +203,16 @@ def get_clinet_list():
             'numberResults': str(PAGE_SIZE)
         }
     }
-    accounts = customer_service.getCustomers(selector)
+    try:
+        accounts = customer_service.getCustomers(selector)
+    except Exception as inst:
+        # print(type(inst))    # the exception instance
+        print(inst.args[0])     # arguments stored in .args
+        # print(inst)          # __str__ allows args to be printed directly,
+        if 'NOT_ADS' in inst.args[0]:
+            return flask.jsonify({'status':'no_ads'})
+        else:
+            return flask.abort(404)
 
     render_list = []
     for customer in accounts:
@@ -253,99 +262,104 @@ def check_account(customerId, check_service):
     {
         'name': 'conversions_check',
         'description' :'Any conversions set up in tools>conversions?',
-        'apply': check_convesions_exist
+        'apply': check_convesions_exist,
+        'imagename': '1.png'
     },
     {
         'name': 'broad_modifiers_check',
         'description' :'Full broad matches (not modifier)',
         'apply': full_broad_exist,
-        'listed': True
-    },
-    {
-        'name': 'conversions_check',
-        'description' :'Any conversions set up in tools>conversions?',
-        'apply': check_convesions_exist
-    },
-    {
-        'name': 'broad_modifiers_check',
-        'description' :'Full broad matches (not modifier)',
-        'apply': full_broad_exist,
+        'imagename': '2.png',
         'listed': True
     },
     {
         'name': 'short_modifiers_check',
         'description': '1 or 2 word Broad Match Modifiers',
         'apply': short_broad_exist,
+        'imagename': '3.png',
         'listed': True
     },
     {
         'name': 'mobile_firendly_pages',
-        'description' :'Landing pages are mobile firendly',
+        'description' :'Landing pages are mobile friendly',
         'apply': mobile_firendly_pages, #landing_home_pages
+        'imagename': '4.png',
         'listed': True
     },
     {
         'name': 'landing_home_pages',
         'description' :'Landing Page = homepage (no /anything at end of URL)',
         'apply': landing_home_pages, #has_modifiers
+        'imagename': '5.png',
         'listed': True
     },
     {
         'name': 'low_quality_keywords',
-        'description' :'Has Kewqords with Quality score less then 5',
-        'apply': low_quality_keywords # has_negatives
+        'description' :'No keywords with quality score <5',
+        'apply': low_quality_keywords, # has_negatives
+        'imagename': '6.png'
     },
     {
         'name': 'has_negatives',
         'description' :'Has Negatives',
-        'apply': has_negatives # has_changes
+        'apply': has_negatives, # has_changes
+        'imagename': '7.png'
     },
     {
         'name': 'has_changes',
         'description' :'Change History Has More Than 10 changes in period (last 90 days)',
-        'apply': has_changes # cost_per_conversions
+        'apply': has_changes, # cost_per_conversions
+        'imagename': '8.png'
     },
     {
         'name': 'has_more3_ads',
-        'description' :'Ad Groups Have Three Or Move Ads',
-        'apply': has_more3_ads # search_ctr
+        'description' :'Ad groups have three or more ads',
+        'apply': has_more3_ads, # search_ctr
+        'imagename': '9.png'
     },
     {
         'name': 'search_ctr',
         'description' :'Search CTR is Less Than 3%',
-        'apply': search_ctr # ave_position
+        'apply': search_ctr, # ave_position
+        'imagename': '10.png'
     },
     {
         'name': 'ave_position',
         'description' :'Average Position is Better than 2.1',
-        'apply': ave_position # have_trials
+        'apply': ave_position, # have_trials
+        'imagename': '11.png'
     },
     {
         'name': 'have_trials',
-        'description' :'High Spending Account has active Trial Campaigns',
-        'apply': have_trials # have_trials
+        'description' :'High spending account has experiments happening',
+        'apply': have_trials, # have_trials
+        'imagename': '12.png'
     },
     {
         'name': 'has_modifiers',
-        'description' :'All enabled CPC campaigns have bid modifiers',
+        'description' :'CPC campaigns have bid modifiers in place',
         'apply': has_modifiers, #has_customizers
+        'imagename': '13.png',
         'listed': True
     },
     {
         'name': 'has_customizers',
         'description' :'Account has ad customized feeds',
-        'apply': has_customizers #location_interested
+        'apply': has_customizers, #location_interested
+        'imagename': '14.png'
     },
     {
         'name': 'bid_strategy',
         'description' :'Account has non manual strategies (applicable for spending over 3K)',
         'apply': bid_strategy, #bid_strategy
+        'imagename': '15.png',
         'listed': True
     },
     {
         'name': 'location_interested',
-        'description' :'Enabled cmapigns has locations has "interested in" option',
+        'description' :'Location targeting set to "physically in" location, not "interested in" default',
         'apply': location_interested, #bid_strategy
+        'imagename': '16.png',
         'listed': True
     },
     {
@@ -355,12 +369,12 @@ def check_account(customerId, check_service):
     },
     {
         'name': 'impressions_share',
-        'description' :'Simpression Share',
+        'description' :'Impressions Share',
         'apply': impressions_share # impressions_share
     }
     ]
     callee = next((item for item in checks if item['name'] == check_service), None)
-
+    print("********************************************", callee)
     if callee['apply']:
         check_result = callee['apply'](adwords_client, callee)
         ## COMBAK:
@@ -383,6 +397,7 @@ def check_convesions_exist(adwords_client, item, list=None):
     conversions = tracker_service.get(selector)
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     app.logger.info('Conversions calculation complete %s', conversions.totalNumEntries)
     if conversions.totalNumEntries > 0:
         res['flag'] = 'green'
@@ -418,6 +433,7 @@ def full_broad_exist(adwords_client, item, list=None):
             affected.append(row)
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     if len(affected) > 1:
         res['flag'] = 'red'
     else:
@@ -456,6 +472,7 @@ def short_broad_exist(adwords_client, item, list=None):
             affected.append(row)
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     if len(affected) > 1:
         res['flag'] = 'red'
     else:
@@ -490,6 +507,7 @@ def mobile_firendly_pages(adwords_client, item, list=None):
             affected.append(row)
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     if len(affected) > 1:
         res['flag'] = 'amber'
     else:
@@ -530,6 +548,7 @@ def landing_home_pages(adwords_client, item, list=None):
                     affected.append(row)
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     if len(affected) > 1:
         res['flag'] = 'amber'
     else:
@@ -563,6 +582,7 @@ def low_quality_keywords(adwords_client, item, list=None):
             affected.append(row)
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     if len(affected) > 1:
         res['flag'] = 'amber'
     else:
@@ -576,7 +596,7 @@ def low_quality_keywords(adwords_client, item, list=None):
 def has_negatives(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
-
+    res['imagename'] = item['imagename']
     # neg keywords = report of  CAMPAIGN_NEGATIVE_KEYWORDS_PERFORMANCE_REPORT has entries
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
     report_query = (adwords.ReportQueryBuilder()
@@ -623,6 +643,7 @@ def has_negatives(adwords_client, item, list=None):
 def has_changes(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     # CustomerSyncService:
     customer_sync_service = adwords_client.GetService(
         'CustomerSyncService', version='v201809')
@@ -682,6 +703,7 @@ def has_changes(adwords_client, item, list=None):
 def has_more3_ads(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
 
     # Create report query.
@@ -724,6 +746,7 @@ def has_more3_ads(adwords_client, item, list=None):
 def search_ctr(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
 
     # Create report query.
@@ -757,7 +780,7 @@ def search_ctr(adwords_client, item, list=None):
 def ave_position(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
-
+    res['imagename'] = item['imagename']
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
 
     # Create report query.
@@ -789,7 +812,7 @@ def ave_position(adwords_client, item, list=None):
 def have_trials(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
-
+    res['imagename'] = item['imagename']
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
 
     # Create report query.
@@ -813,7 +836,7 @@ def have_trials(adwords_client, item, list=None):
     cost = float(row[header.index('Cost')]) / 1000000
     if cost > 3000:
         if app.debug:
-            print (f"checking trials, budget {cost} is over 3000")
+            print ("checking trials, budget {cost} is over 3000")
         # campaignTrialType == TRIAL
         campaign_service = adwords_client.GetService('CampaignService', version='v201809')
         offset = 0
@@ -855,6 +878,7 @@ def have_trials(adwords_client, item, list=None):
 def has_modifiers(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     # GET CPC campaigns:
     campaigns_service = adwords_client.GetService(
         'CampaignService', version='v201809')
@@ -946,6 +970,7 @@ def has_modifiers(adwords_client, item, list=None):
 def has_customizers(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     # GET CPC campaigns:
     feeds_service = adwords_client.GetService(
         'AdCustomizerFeedService', version='v201809')
@@ -982,6 +1007,7 @@ def has_customizers(adwords_client, item, list=None):
 def location_interested(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     # GET CPC campaigns:
     campaigns_service = adwords_client.GetService(
         'CampaignService', version='v201809')
@@ -1055,7 +1081,7 @@ def impressions_share(adwords_client, item, list=None):
                       .Where('AdNetworkType1').EqualTo('SEARCH')
                       .During(**DEFAULT_PERFOMANCE_PERIOD)
                       .Build())
-        header = ['Search Immpressions Recieved', 'Lost ImpressionShare (Budget)', 'Lost ImpressionShare (Rank)']
+        header = ['Search Impressions Recieved', 'Lost ImpressionShare (Budget)', 'Lost ImpressionShare (Rank)']
         stream_data = report_downloader.DownloadReportAsStringWithAwql(
             report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, skip_column_header=True)
         rows = get_reports_rows(stream_data)
@@ -1073,6 +1099,7 @@ def impressions_share(adwords_client, item, list=None):
 def bid_strategy(adwords_client, item, list=None):
     res = {}
     res['description'] = item['description']
+    res['imagename'] = item['imagename']
     value_map = {
     'MANUAL_CPC': 'Manual cpc',
     'MANUAL_CPV': 'Manual cpv',
@@ -1197,7 +1224,7 @@ def build_sheet_id(customerId):
         },
         {
             'name': 'mobile_firendly_pages',
-            'description' :'Landing pages are mobile firendly',
+            'description' :'Landing pages are mobile friendly',
             'apply': mobile_firendly_pages, #low_quality_keywords
             'listed': True,
             'sheet_name': 'Non Mobile Friendly Landing Pages'
@@ -1211,7 +1238,7 @@ def build_sheet_id(customerId):
         },
         {
             'name': 'low_quality_keywords',
-            'description' :'Has Kewqords with Quality score less then 5',
+            'description' :'No keywords with quality score <5',
             'apply': low_quality_keywords, # has_negatives
             'listed': True,
             'sheet_name': 'Low Quality Keywords'
@@ -1228,7 +1255,7 @@ def build_sheet_id(customerId):
         },
         {
             'name': 'has_more3_ads',
-            'description' :'Ad Groups Have Three Or Move Ads',
+            'description' :'Ad groups have three or more ads',
             'apply': has_more3_ads # search_ctr
         },
         {
@@ -1243,12 +1270,12 @@ def build_sheet_id(customerId):
         },
         {
             'name': 'have_trials',
-            'description' :'High Spending Account has active Trial Campaigns',
+            'description' :'High spending account has experiments happening',
             'apply': have_trials # have_trials
         },
         {
             'name': 'has_modifiers',
-            'description' :'Enabled CPC campaigns have bid modifiers',
+            'description' :'CPC campaigns have bid modifiers in place',
             'apply': has_modifiers, #has_modifiers
             'listed': True,
             'sheet_name': 'Bid Modifiers'
@@ -1267,7 +1294,7 @@ def build_sheet_id(customerId):
         },
         {
             'name': 'location_interested',
-            'description' :'Enabled cmapigns has locations has "interested in" option',
+            'description' :'Location targeting set to "physically in" location, not "interested in" default',
             'apply': location_interested, #location_interested
             'listed': True,
             'sheet_name': 'Location Settings'
@@ -1506,7 +1533,7 @@ def get_campaigns_ids(client):
     campaigns = campaign_service.get(campaigns_selector)
     campaign_ids = []
     if 'entries' in campaigns:
-        print (f"fonud {campaigns.totalNumEntries}")
+        print ("fonud {campaigns.totalNumEntries}")
         for campaign in campaigns['entries']:
             campaign_ids.append(campaign['id'])
             # print(f"campaign name {campaign.name}")
@@ -1547,7 +1574,7 @@ def get_search_campaigns_ids(client):
     campaigns = campaign_service.get(campaigns_selector)
     campaign_ids = []
     if 'entries' in campaigns:
-        print (f"fonud {campaigns.totalNumEntries}")
+        print ("fonud {campaigns.totalNumEntries}")
         for campaign in campaigns['entries']:
             campaign_ids.append(campaign['id'])
             # print(f"campaign name {campaign.name}")
