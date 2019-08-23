@@ -369,7 +369,7 @@ def check_account(customerId, check_service):
     },
     {
         'name': 'impressions_share',
-        'description' :'Simpression Share',
+        'description' :'Impressions Share',
         'apply': impressions_share # impressions_share
     }
     ]
@@ -1081,7 +1081,7 @@ def impressions_share(adwords_client, item, list=None):
                       .Where('AdNetworkType1').EqualTo('SEARCH')
                       .During(**DEFAULT_PERFOMANCE_PERIOD)
                       .Build())
-        header = ['Search Immpressions Recieved', 'Lost ImpressionShare (Budget)', 'Lost ImpressionShare (Rank)']
+        header = ['Search Impressions Recieved', 'Lost ImpressionShare (Budget)', 'Lost ImpressionShare (Rank)']
         stream_data = report_downloader.DownloadReportAsStringWithAwql(
             report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, skip_column_header=True)
         rows = get_reports_rows(stream_data)
