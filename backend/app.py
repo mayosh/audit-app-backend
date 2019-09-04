@@ -43,6 +43,7 @@ sheets_token = '1/M2iYW2N8Evip-ReUMK7Xix6jM6JYmVwZMPLUWSIxUFLbD9jO06plCyRUTZcjCd
 PAGE_SIZE = 100
 CHANGE_LIMIT = 10
 DEFAULT_PERFOMANCE_PERIOD = defauls_period() #'LAST_30_DAYS'
+FOLDER_ID = '1SfANYC_jULpbJDXwYz0sEG81ItQWN9aW'
 
 FIRABASE_CRED_FILE = 'creds/firebase-key.json'
 firebase_credentials = firebase_module_credentials.Certificate(FIRABASE_CRED_FILE)
@@ -410,75 +411,85 @@ def check_convesions_exist(adwords_client, item, list=None):
 
 def full_broad_exist(adwords_client, item, list=None):
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
-
-    # Create report query.
-    report_query = (adwords.ReportQueryBuilder()
-                  .Select('Criteria', 'AdGroupName', 'CampaignName', 'Clicks')
-                  .From('KEYWORDS_PERFORMANCE_REPORT')
-                  .Where('Criteria').DoesNotContainIgnoreCase('+')
-                  .Where('KeywordMatchType').EqualTo('BROAD')
-                  .Where('Status').EqualTo('ENABLED')
-                  .Where('AdGroupStatus').EqualTo('ENABLED')
-                  .Where('CampaignId').In(*get_search_campaigns_ids(adwords_client))
-                  # TODO add campaign Ids filter
-                  .During('LAST_MONTH')
-                  .Build())
-    stream_data = report_downloader.DownloadReportAsStringWithAwql(
-        report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, include_zero_impressions=True)
-
-    reader = csv.reader(stream_data.split('\n')) # , dialect='excel') .split('\n')
-    affected = []
-    for row in reader:
-        if row != []:
-            affected.append(row)
+    ids = get_search_campaigns_ids(adwords_client)
     res = {}
     res['description'] = item['description']
     res['imagename'] = item['imagename']
-    if len(affected) > 1:
-        res['flag'] = 'red'
+    affected = []
+
+    if ids == []:
+        res['flag'] = 'other'
     else:
-        res['flag'] = 'green'
+        # Create report query.
+        report_query = (adwords.ReportQueryBuilder()
+                    .Select('Criteria', 'AdGroupName', 'CampaignName', 'Clicks')
+                    .From('KEYWORDS_PERFORMANCE_REPORT')
+                    .Where('Criteria').DoesNotContainIgnoreCase('+')
+                    .Where('KeywordMatchType').EqualTo('BROAD')
+                    .Where('Status').EqualTo('ENABLED')
+                    .Where('AdGroupStatus').EqualTo('ENABLED')
+                    .Where('CampaignId').In(*ids)
+                    # TODO add campaign Ids filter
+                    .During('LAST_MONTH')
+                    .Build())
+        stream_data = report_downloader.DownloadReportAsStringWithAwql(
+            report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, include_zero_impressions=True)
+
+        reader = csv.reader(stream_data.split('\n')) # , dialect='excel') .split('\n')
+        for row in reader:
+            if row != []:
+                affected.append(row)
+
+        if len(affected) > 1:
+            res['flag'] = 'red'
+        else:
+            res['flag'] = 'green'
 
     app.logger.info('%s complete with flag %s', inspect.currentframe().f_code.co_name, res['flag'])
 
     if list:
-        # rows =[['KeywordText', 'AdGroupId']] + [[keyword['criterion']['text'], keyword['adGroupId']] for keyword in keywords['entries']]
-        # print (rows[:5])
         res['rows'] = affected
         return res
     return flask.jsonify(res)
 
 def short_broad_exist(adwords_client, item, list=None):
     report_downloader = adwords_client.GetReportDownloader(version='v201809')
-
-    # Create report query.
-    report_query = (adwords.ReportQueryBuilder()
-                  .Select('Criteria', 'AdGroupName', 'CampaignName', 'Clicks')
-                  .From('KEYWORDS_PERFORMANCE_REPORT')
-                  .Where('Criteria').ContainsIgnoreCase('+')
-                  .Where('KeywordMatchType').EqualTo('BROAD')
-                  .Where('Status').EqualTo('ENABLED')
-                  .Where('AdGroupStatus').EqualTo('ENABLED')
-                  .Where('CampaignId').In(*get_search_campaigns_ids(adwords_client))
-                  .During('LAST_MONTH')
-                  .Build())
-    stream_data = report_downloader.DownloadReportAsStringWithAwql(
-        report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, include_zero_impressions=True)
-
-    reader = csv.reader(stream_data.split('\n')) # , dialect='excel') .split('\n')
-    affected = []
-    for row in reader:
-        if row != [] and len(row[0].split()) < 3:
-            affected.append(row)
+    ids = get_search_campaigns_ids(adwords_client)
     res = {}
     res['description'] = item['description']
     res['imagename'] = item['imagename']
-    if len(affected) > 1:
-        res['flag'] = 'red'
+    affected = []
+
+    if ids == []:
+        res['flag'] = 'other'
     else:
-        res['flag'] = 'green'
-    # if list:
-    res['rows'] = affected
+        # Create report query.
+        report_query = (adwords.ReportQueryBuilder()
+                    .Select('Criteria', 'AdGroupName', 'CampaignName', 'Clicks')
+                    .From('KEYWORDS_PERFORMANCE_REPORT')
+                    .Where('Criteria').ContainsIgnoreCase('+')
+                    .Where('KeywordMatchType').EqualTo('BROAD')
+                    .Where('Status').EqualTo('ENABLED')
+                    .Where('AdGroupStatus').EqualTo('ENABLED')
+                    .Where('CampaignId').In(*get_search_campaigns_ids(adwords_client))
+                    .During('LAST_MONTH')
+                    .Build())
+        stream_data = report_downloader.DownloadReportAsStringWithAwql(
+            report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, include_zero_impressions=True)
+
+        reader = csv.reader(stream_data.split('\n')) # , dialect='excel') .split('\n')
+        for row in reader:
+            if row != [] and len(row[0].split()) < 3:
+                affected.append(row)
+        res = {}
+        res['description'] = item['description']
+        res['imagename'] = item['imagename']
+        if len(affected) > 1:
+            res['flag'] = 'red'
+        else:
+            res['flag'] = 'green'
+        # if list:
+        res['rows'] = affected
 
     app.logger.info('%s complete with flag %s', inspect.currentframe().f_code.co_name, res['flag'])
 
@@ -1338,8 +1349,6 @@ def build_sheet_id(customerId):
         queue.append(asyncator(loop, item['apply'], adwords_client, item, list=True))
     async_resutls = loop.run_until_complete(asyncio.gather(
     *queue,
-    # asyncator(loop, abar, '11'),
-    # asyncator(loop, abar, '12'),
     return_exceptions=True
     ))
     loop.close()
@@ -1348,6 +1357,8 @@ def build_sheet_id(customerId):
     for idx, async_res in enumerate(async_resutls):
         item = checks[idx]
         if not isinstance(async_res, Exception):
+            async_res['sheet_name'] = item['sheet_name'] if item.get('sheet_name', False) else None
+            async_res['listed'] = item['listed'] if item.get('listed', False) else None
             results.append(async_res)
             # print (async_res)
             # app.logger.info('got async res with keys []%s]',','.join(async_res.keys) )
@@ -1356,22 +1367,30 @@ def build_sheet_id(customerId):
                 spreadsheet_body['sheets'].append({ "properties": { "title": item.get('sheet_name')}})
                 print ('creating sheet: ' + "'{0}'".format(item.get('sheet_name')))
         else:
-            print('oops something went wrong')
+            print(f"oops something went wrong {item['name']}")
             app.logger.warning(f"bad result from {item['name']}")
             app.logger.exception(async_res)
-    # for item in checks:
-
-        # results.append(item['apply'](adwords_client, item, list=True))
-
-
-        # if async_res.get('listed', False):
-        #     spreadsheet_body['sheets'].append({ "properties": { "title": async_res.get('sheet_name')}})
-        #     print ('creating sheet: ' + "'{0}'".format(async_res.get('sheet_name')))
 
     sheets_service = googleapiclient.discovery.build('sheets', 'v4', credentials=creds)
+    drive_service = googleapiclient.discovery.build('drive', 'v3', credentials=creds)
 
     request = sheets_service.spreadsheets().create(body=spreadsheet_body)
     response = request.execute()
+
+    file_id = response.get('spreadsheetId')
+    folder_id = FOLDER_ID
+    file = drive_service.files().get(fileId=file_id,
+                                    fields='parents').execute();
+    previous_parents = ",".join(file.get('parents'))
+    # Move the file to the new folder
+    file = drive_service.files().update(fileId=file_id,
+                                        addParents=folder_id,
+                                        removeParents=previous_parents,
+                                        fields='id, parents').execute()
+    
+
+
+
     sheet_url = response.get('spreadsheetUrl')
     lead_checks = lead_data['checks']
     lead_checks[customerId] = lead_checks.get(customerId, [])
@@ -1392,14 +1411,14 @@ def build_sheet_id(customerId):
             print (checks[index])
         if item.get('description', False) and item.get('flag', False):
             main_results.append([item['description'], item['flag']])
-        if checks[index].get('listed', False):
+        if results[index].get('listed', False):
             body = {
                 'values': item.get('rows', [[]])
             }
             if app.debug:
                 print (item.get('rows'))
             result = sheets_service.spreadsheets().values().update(
-            spreadsheetId=sheet_id, range="'{0}'".format(checks[index]['sheet_name']),
+            spreadsheetId=sheet_id, range="'{0}'".format(results[index]['sheet_name']),
             valueInputOption='RAW', body=body).execute()
     body = {
         'values': main_results
