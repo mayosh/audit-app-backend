@@ -323,7 +323,7 @@ def check_account(customerId, check_service):
     },
     {
         'name': 'ave_position',
-        'description' :'Average Position is Better than 2.1',
+        'description' :'Search Top Impression rate is Better than 30%',
         'apply': ave_position, # have_trials
         'imagename': '11.png'
     },
@@ -796,12 +796,12 @@ def ave_position(adwords_client, item, list=None):
 
     # Create report query.
     report_query = (adwords.ReportQueryBuilder()
-                  .Select('AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'AveragePosition')
+                  .Select('AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'AveragePosition', 'TopImpressionPercentage')
                   .From('ACCOUNT_PERFORMANCE_REPORT')
                   .Where('AdNetworkType1').EqualTo('SEARCH')
                   .During(**DEFAULT_PERFOMANCE_PERIOD)
                   .Build())
-    header = ['AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'AveragePosition']
+    header = ['AdNetworkType1', 'CustomerDescriptiveName', 'Clicks', 'AveragePosition', 'TopImpressionPercentage']
     stream_data = report_downloader.DownloadReportAsStringWithAwql(
         report_query, 'CSV', use_raw_enum_values=True, skip_report_header=True, skip_report_summary=True, skip_column_header=True)
     rows = get_reports_rows(stream_data)
@@ -811,9 +811,10 @@ def ave_position(adwords_client, item, list=None):
     row = rows[0]
     if app.debug:
         print (row)
-    av_position = float(row[header.index('AveragePosition')])
+    av_position = float(row[header.index('TopImpressionPercentage')])
+    print(F"TopImpressionPercentage from report is {av_position}")
     res['flag'] = 'green'
-    if (av_position > 2.1):
+    if (av_position < 0.3):
         res['flag'] = 'amber'
     if list:
         return res
@@ -1158,6 +1159,45 @@ def bid_strategy(adwords_client, item, list=None):
         return res
     return flask.jsonify(res)
 
+@app.route('/dummy_folder')
+def dummy():
+    # SCOPES = ['https://www.googleapis.com/auth/drive',
+    # 'https://www.googleapis.com/auth/drive.file',
+    # 'https://www.googleapis.com/auth/spreadsheets']
+    creds = None
+    # The file token.pickle stores the user's access and refresh tokens, and is
+    # created automatically when the authorization flow completes for the first
+    # time.
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    # If there are no (valid) credentials available, let the user log in.
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
+                SHEET_SECRETS_FILE, SCOPES)
+            creds = flow.run_local_server()
+        # Save the credentials for the next run
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+    #saving to firebasei
+
+
+    # folder_id = FOLDER_ID
+    drive_service = googleapiclient.discovery.build('drive', 'v3', credentials=creds)
+    conf_data = db.collection('config').document('drive_settings').get().to_dict()
+    if not conf_data is None:
+        folder_id = conf_data['folder_id']
+    else:
+        return flask.jsonify({'message':'no folder available'})
+    folder = drive_service.files().get(fileId=folder_id).execute();
+    
+    fold_data = { key: value for key, value in folder.items() }
+    return flask.jsonify({'folder':fold_data})
+    
+
 @app.route('/create_sheet/<customerId>')
 def build_sheet_id(customerId):
     SCOPES = ['https://www.googleapis.com/auth/drive',
@@ -1228,7 +1268,7 @@ def build_sheet_id(customerId):
         },
         {
             'name': 'short_modifiers_check',
-            'description' :'1 or 2 word Broad Match Modifiers exist',
+            'description' :'1 or 2 wor  d Broad Match Modifiers exist',
             'apply': short_broad_exist,
             'listed': True,
             'sheet_name': '1 or 2 word Broad Match Modifiers'
@@ -1276,7 +1316,7 @@ def build_sheet_id(customerId):
         },
         {
             'name': 'ave_position',
-            'description' :'Average Position is Better than 2.1',
+            'description' :'Search Top Impression rate is Better than 30%',
             'apply': ave_position # have_trials
         },
         {
@@ -1298,7 +1338,7 @@ def build_sheet_id(customerId):
         },
         {
             'name': 'bid_strategy',
-            'description' :'Account has non manual strategies (applicable for spending over 3K)',
+            'description' :'Account has non manual strate   gies (applicable for spending over 3K)',
             'apply': bid_strategy, #bid_strategy
             'listed': True,
             'sheet_name': 'Bid Strategies'
@@ -1379,6 +1419,9 @@ def build_sheet_id(customerId):
 
     file_id = response.get('spreadsheetId')
     folder_id = FOLDER_ID
+    conf_data = db.collection('config').document('drive_settings').get().to_dict()
+    if not conf_data is None:
+        folder_id = conf_data['folder_id']
     file = drive_service.files().get(fileId=file_id,
                                     fields='parents').execute();
     previous_parents = ",".join(file.get('parents'))
@@ -1387,9 +1430,6 @@ def build_sheet_id(customerId):
                                         addParents=folder_id,
                                         removeParents=previous_parents,
                                         fields='id, parents').execute()
-    
-
-
 
     sheet_url = response.get('spreadsheetUrl')
     lead_checks = lead_data['checks']
