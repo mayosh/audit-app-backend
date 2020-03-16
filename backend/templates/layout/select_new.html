@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Ads Audit: Select Account</title>
+</head>
+<body>
+    <div id="app">
+        <div class="select">
+            <img src="{{  url_for('static', filename='img/CIC-Rocket.png')  }}">
+            <h2>Hello {{user.name}}.</h2>
+            <p> <span> Please select an account from the list</span></p>
+            <div id="client_list">
+                {% for mcc in data if mcc.canManageClients == True %}
+                <div class="account_block">
+                    <div>Accounts under {{ mcc.name }} master account:  </div>
+                    {% for account in mcc.child  %}
+                    <div class="child_accounts">
+                        <span><a href="{{url_for('check2_0', customerId = account.id, template='done')}}">{{account.name}} </a> :: {{account.id}} </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                <div class="account_block">
+                    <div>Accounts with direct access:  </div>
+                    {% for account in data if account.canManageClients == False %}
+                    <div class="child_accounts">
+                        <span><a href="{{url_for('check2_0', customerId = account.id)}}">{{account.name}} </a> :: {{account.id}} </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<style>
+    @import url('https://fonts.googleapis.com/css?family=Lato:100,100i,300,300i,400,400i,700,700i,900,900i&display=swap');
+
+    body{
+        font-family: 'Lato', sans-serif;
+        font-size: 16px;
+    }
+    #app{
+        font-family: 'Lato', sans-serif;
+        /* font-family: 'Josefin Sans', sans-serif; */
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-align: center;
+        color: #2c3e50;
+        margin-top: 70px;
+    }
+    #app img{
+        width: 140px
+    }
+    h2{
+        font-size: 40px;
+        font-weight: 700;
+        margin-bottom: 50px;
+        color: #353535;
+        margin-top: 120px;
+    }
+    div#client_list {
+        display: inline-block;
+
+    }
+    div.account_block {
+        text-align: left;
+        font-size: 16px;
+    } 
+    .child_accounts {
+        padding-left: 25px;
+    }
+</style>
+</html>

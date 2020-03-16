@@ -1,0 +1,330 @@
+@import url('https://fonts.googleapis.com/css?family=Lato:100,100i,300,300i,400,400i,700,700i,900,900i&display=swap');
+
+body{
+    font-family: 'Lato', sans-serif;
+    font-size: 16px;
+}
+
+*,
+*:before,
+*:after {
+    box-sizing: border-box;
+}
+
+.score-means, .share-report, .print-report{
+
+}
+
+.score-means{
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 47px 30px!important;
+    text-align: center;
+}
+
+.print-report{
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 0 30px;
+    text-align: center;
+    height: 53px;
+    line-height: 53px;
+    margin-top: 14px;
+}
+
+.share-report{
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 0 30px;
+    height: 53px;
+    line-height: 53px;
+    text-align: center;
+}
+
+
+.share-report a img, .print-report a img{
+    margin-right: 10px;
+}
+
+.share-report a:hover, .print-report a:hover{
+    text-decoration: none;
+}
+
+a.pdf-btn{
+    display: block;
+    width: 420px;
+    height: 81px;
+    border-radius: 6px;
+    background: #0f93e9;
+    text-align: center;
+    margin: 60px auto;
+    line-height: 81px;
+    font-size: 24px;
+    color: #ffffff;
+}
+
+.pdf-btn:hover{
+    text-decoration: none;
+    background: #0e8bdd;
+}
+
+.title h2{
+    font-size: 40px;
+    font-weight: 700;
+    margin-bottom: 50px;
+    color: #353535;
+    margin-top: 120px;
+}
+
+.title h3 {
+    margin-bottom: 25px;
+    margin-top: 50px;
+}
+
+.table-responsive{
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 12px 32px;
+}
+
+.table td{
+    color: #414042;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-top: 1px solid #dddddd;
+}
+
+.table thead tr th{
+    padding: 25px 0;
+    border-top: none;
+    text-align: center;
+    color: #0f93e9;
+    font-weight: normal;
+}
+
+.table tfoot tr th{
+    color: #414042;
+    text-align: center;
+    padding: 20px 0;
+    font-weight: bold;
+}
+
+
+
+/*List Of Bits Start*/
+.list-of-bits{
+    margin-top: 140px;
+}
+
+.list-of-bits .bit-box{
+    margin-top: 30px;
+}
+
+
+
+/*.row.display-flex {*/
+    /*display: flex!important;*/
+    /*flex-wrap: wrap!important;*/
+/*}*/
+/*.row.display-flex > [class*='col-'] {*/
+    /*display: flex!important;*/
+    /*flex-direction: column!important;*/
+/*}*/
+
+
+
+
+
+/*New Display bits*/
+
+.bit-box{
+    width: 100%;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+    padding: 40px;
+    /*min-height: 100px;*/
+    -webkit-transition: all 300ms ease-in;
+    -webkit-transform: scale(1);
+    -ms-transition: all 300ms ease-in;
+    -ms-transform: scale(1);
+    -moz-transition: all 300ms ease-in;
+    -moz-transform: scale(1);
+    transition: all 300ms ease-in;
+    transform: scale(1);
+    position: relative;
+
+    background: #ffffff;
+}
+
+.bit-box:hover{
+    cursor: pointer;
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.16);
+    z-index: 2;
+    background: #ffffff;
+    -webkit-transition: all 300ms ease-in;
+    -webkit-transform: scale(1.2);
+    -ms-transition: all 300ms ease-in;
+    -ms-transform: scale(1.2);
+    -moz-transition: all 200ms ease-in;
+    -moz-transform: scale(1.2);
+    transition: all 300ms ease-in;
+    transform: scale(1.2);
+    z-index: 9999;
+}
+
+.bit-box img{
+    height: 43px;
+}
+
+.bit-box .count{
+    font-size: 72px;
+    color: #424242;
+    margin: 12px 0;
+}
+
+.bit-box .bit-description{
+    font-size: 24px;
+    color: #424242;
+    margin-bottom: 35px;
+}
+
+.bit-box .test2-green{
+    width: 100%;
+    height: 58px;
+    background: #39b54a;
+    border-radius: 6px;
+    color: #fff;
+    line-height: 58px;
+    margin-top: 20px;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+.bit-box .count-passed{
+    color: #e41919;
+}
+
+.bit-box .count-failed{
+    color: #e41919;
+}
+
+.bit-box .test2-red{
+    width: 100%;
+    height: 58px;
+    background: #e41919;
+    border-radius: 6px;
+    color: #fff;
+    line-height: 58px;
+    margin-top: 20px;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+.bit-box .test2-amber{
+    width: 100%;
+    height: 58px;
+    background: #ffce1f;
+    border-radius: 6px;
+    color: #fff;
+    line-height: 58px;
+    margin-top: 20px;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+/*.test2-red, .test2-green, .test2-amber{*/
+    /*bottom: 40px;*/
+    /*left: 40px;*/
+    /*right: 40px;*/
+/*}*/
+
+@media only screen and (max-width: 768px) {
+    .bit-box{
+        margin-bottom: 10px;
+    }
+    a.pdf-btn{
+        width: 100%;
+    }
+    .score-means{
+        margin-bottom: 30px;
+    }
+    .share-report{
+        margin-top: 30px;
+    }
+    span#procent {
+        font-size: 50px!important;
+    }
+    span#score{
+        font-size: 15px;
+    }
+    a.pdf-btn{
+        font-size: 16px;
+    }
+
+    .bit-box .bit-description{
+        font-size: 18px;
+    }
+    .list-of-bits .bit-box{
+        margin-top: 10px;
+    }
+}
+
+
+
+canvas{
+    width: 100%;
+    height: 100%;
+}
+
+span#procent {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    font-size: 70px;
+    transform: translate(-50%, -50%);
+    color: #353535;
+}
+
+span#score {
+    display: block;
+    position: absolute;
+    left: 50%;
+    top: 70%;
+    font-size: 21px;
+    transform: translate(-50%, -50%);
+    color: #353535;
+}
+
+span#procent::after {
+    content: '%';
+}
+
+.canvas-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.bits{
+    margin-bottom: 30px;
+}
+
+.card{
+    border: none!important;
+}
+
+
+
+section, table {
+    page-break-inside: avoid;
+    
+}
+.break-page {
+    break-before: always;
+}
+
+div.card, div.card * {
+    page-break-inside: avoid;
+}

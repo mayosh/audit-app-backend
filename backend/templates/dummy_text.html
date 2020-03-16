@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <h2>total score</h2>
+    <div class="score">{{ data['total_score']}} of {{data['max_score']}}</div>
+    <h2>total stats</h2>
+    <table>
+
+        {% for row in data.results[-1].rows if row%}
+        <tr>
+            {% for value in row %}
+                <td>
+                        {% if value is number %}
+                        {{'%0.2f'|format(value|float)}}
+                        {% else %}
+                        {{value}}
+                        {% endif %}
+                </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+    <h2>Search checks</h2>
+    {% for res in data['results'] if res.type != 'display' %}
+        <div>{{ res.description }} :: {{res.flag}} :: {{res.scored}}</div>
+    {% endfor %}
+    <h2>display checks</h2>
+    {% for res in data['results'] if res.type == 'display' and res.name not in ['top_placements', 'ctr15_placements', 'cr15_placements'] %}
+        <div>{{ res.description }} :: {{res.flag}} :: {{res.scored}}</div>
+    {% endfor %}
+    <h2>display stats</h2>
+    {% for res in data['results'] if res.name in ['top_placements', 'ctr15_placements', 'cr15_placements'] %}
+ 
+        <h3>{{res.description}}</h3>
+        <table>
+        {% for row in res['rows'] %} 
+        
+            <tr>
+                {% for value in row %}
+                    <td>
+                            {% if value is number %}
+                            {{'%0.2f'|format(value|float)}}
+                            {% else %}
+                            {{value}}
+                            {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+        </table>
+    {% endfor %}
+
+
+</body>
+</html>

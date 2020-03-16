@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/bootstrap/bootstrap.min.css') }}"  >
+    <!-- <link rel="stylesheet" href="style/style.css" > -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}" >
+
+
+    <script src="{{ url_for('static', filename='html2pdf.bundle.js')}}"></script>
+
+
+    <title>Adwords Audit</title>
+</head>
+<body id="content">
+
+
+<!--Search Overall Audit Score Start-->
+<section class="main-section" >
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center title">
+                <h2>Overall Audit Score</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 my-auto">
+                <div class="score-means">
+                    <a href="https://clicksincontext.com/adwords-audit-score" target="_blank">What does my score mean?</a>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="canvas-wrap">
+                    <canvas id="canvas" ></canvas>
+                    <span id="procent"></span>
+                    <!-- ## data['total_score']## of ##data['max_score']## -->
+                    <span id="score">{{data.total_score}} of {{data.max_score}}</span>
+                </div>
+            </div>
+            <div class="col-md-3 text-right my-auto">
+                <div class="share-report">
+                    <a href="mailto:?subject=Our Google Ads Audit Score&body=http%3A%2F%2Flcoalhost" title="Our Google Ads Audit Score">
+                        <img src="{{ url_for('static', filename='img/icons/share.png')}}"><span>Share Report</span>
+                    </a>
+                </div>
+                <div class="print-report js__action--print">
+                    <a href="#" class="print-btn"> <img src="{{ url_for('static', filename='img/icons/print.png')}}"><span>Print Report</span></a>
+                </div>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <a href="#" id="cmd" class="pdf-btn">Download PDF Report to Keep</a>
+                <!--<a href="#" id="cmd" onclick="generatePDF()" class="pdf-btn">Download PDF Report to Keep</a>-->
+            </div>
+        </div>
+    </div>
+
+</section>
+<!--Search Overall Audit Score End-->
+
+
+<!--Search Audit Results Section Start-->
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center title">
+                <h2>Search Audit Results</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            {% for name in data.results[-1].rows[0] %}
+                            <th scope="col"> {{  name }}</th>
+                            {% endfor %}
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for row in data.results[-1].rows[1:-1] %}
+                        <tr>
+                            {% for value in row %}
+                            <td>
+                                {% if value is number %}
+                                    {{'%0.2f'|format(value|float)}}
+                                    {% else %}
+                                    {{value}}
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                        <tfoot>
+                        <tr>
+                            {% for value in data.results[-1].rows[-1] %}
+                            <th>
+                                {% if value is number %}
+                                    {{'%0.2f'|format(value|float)}}
+                                    {% else %}
+                                    {{value}}
+                                {% endif %}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                        </tfoot>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!--Search Audit Results Section End-->
+
+
+<!--List Of Bits Start-->
+<section class="list-of-bits">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center title">
+                <h2>Performed Search Checks</h2>
+            </div>
+        </div>
+        <div class="row">
+           <!-- TODO: repeat cards based on $data -->
+
+
+            {% set imgs = [
+                "img/icons/analytics.svg",
+                "img/icons/anal.svg",
+                "img/icons/audience.svg",
+                "img/icons/landing.svg",
+                "img/icons/no-aud.svg",
+                "img/icons/no-key.svg",
+                "img/icons/negatives.svg",
+                "img/icons/graph2.svg",
+                "img/icons/graph3.svg",
+                "img/icons/graph4.svg",
+                "img/icons/graph5.svg",
+                "img/icons/graph6.svg",
+                "img/icons/graph.svg",
+                "img/icons/anal.svg",
+                "img/icons/graph6.svg",
+                "img/icons/graph3.svg"
+            ] 
+            %}
+
+            {% for check in data.results if check.name != 'account_stats' and check.type != 'display' and check.flag != 'other' %}
+                <div class="card mb-4 col-md-4">
+                    <div class="card-body bit-box text-center d-flex flex-column">
+                            <!-- {{ url_for('static', filename='style/style.css') }} -->
+                            {% set filename = imgs[loop.index0] if loop.index0 < imgs|length else imgs[loop.index0 - imgs|length ] %}
+                        <img src="{{  url_for('static', filename=filename)}}">
+                        <!-- <img src= "img/icons/analytics.svg"> -->
+                        <div class="count">{{ check.scored }} </div>
+                        <div class="bit-description">{{ check.description }} </div>
+                        <div class="btn-block mt-auto test-passed test2-{{check.flag}}">
+                            {% if check.flag == 'red' %}
+                                Test Failed
+                            {% elif check.flag == 'green' %}
+                                Test Passed
+                            {% else %}
+                                Test Passed Partly
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<!--List Of Bits End-->
+
+
+<!--Display Audit Results Start-->
+<section class="bits">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center title">
+                <h2>Display Check List Results</h2>
+            </div>
+        </div>
+        <div class="row display-flex">
+            {% set d_imgs = [
+                "img/icons/graph.svg",
+                "img/icons/anal.svg",
+                "img/icons/graph6.svg",
+                "img/icons/graph3.svg"
+                ]
+            %}
+
+            {% for check in data.results if check.type == 'display' and check.flag != 'other' %}
+            <div class="col-md-3">
+                <div class="bit-box text-center">
+                        <!-- {{ url_for('static', filename='style/style.css') }} -->
+                    <img src="{{  url_for('static', filename=d_imgs[loop.index0])}}">
+                    <!-- <img src= "img/icons/analytics.svg"> -->
+                    <div class="count">{{ check.scored }} </div>
+                    <div class="bit-description">{{ check.description }} </div>
+                    <div class="test2-{{check.flag}}">
+                        {% if check.flag == 'red' %}
+                            Test Failed
+                        {% elif check.flag == 'green' %}
+                            Test Passed
+                        {% else %}
+                            Test Passed Partly
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+</section>
+<!--Display Audit Results End-->
+
+
+<!--Display Tables Results Start-->
+<section>
+    <div class="container">
+        <div class="row">
+                <div class="col-md-12 text-center title">
+                    <h2>Display Audit Results</h2>
+                </div>
+        </div>
+
+        {% for report in data.results if report.flag == 'other' and report.type == 'display'%}
+        <div class="break-page"></div>
+        <div class="row">
+            <div class="col-md-12 text-center title">
+                <h3>{{report.description}}</h3>
+            </div>
+        </div>
+        <div class="row">
+                <div class="col-md-12">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                {% for colName in report.rows[0] %}
+                                <th scope="col">{{colName}}</th>
+                                {% endfor %}
+                            </tr>
+                            </thead>
+                            <tbody> 
+                                    {% for row in report.rows[1:] %}
+                                    <tr>
+                                        {% for value in  row %}
+                                        <td>
+                                        {% if value is number %}
+                                        {{'%0.2f'|format(value|float)}}
+                                        {% else %}
+                                        {{value}}
+                                        {% endif %}
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+<!--Display Audit Results End-->
+
+
+
+
+
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0-alpha1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.debug.js"></script>
+<script>
+
+    window.onload = function() {
+        var can = document.getElementById('canvas'),
+            spanProcent = document.getElementById('procent'),
+            c = can.getContext('2d');
+
+        var posX = can.width / 2,
+            posY = can.height / 2,
+            fps = 1000 / 200,
+            procent = 0,
+            oneProcent = 360 / 100,
+            result = oneProcent * {{data.total_score/data.max_score * 100}};
+
+        c.lineCap = 'round';
+        arcMove();
+
+        function arcMove(){
+            var deegres = 0;
+            var acrInterval = setInterval (function() {
+                deegres += 1;
+                c.clearRect( 0, 0, can.width, can.height );
+                procent = deegres / oneProcent;
+
+                spanProcent.innerHTML = procent.toFixed();
+
+                c.beginPath();
+                c.arc( posX, posY, 70, (Math.PI/180) * 270, (Math.PI/180) * (270 + 360) );
+                c.strokeStyle = '#f2f2f2';
+                c.lineWidth = '6';
+                c.stroke();
+
+                c.beginPath();
+                c.strokeStyle = '#fbcd3b';
+                c.lineWidth = '6';
+                c.arc( posX, posY, 70, (Math.PI/180) * 270, (Math.PI/180) * (270 + deegres) );
+                c.stroke();
+                if( deegres >= result ) clearInterval(acrInterval);
+            }, fps);
+
+        }
+
+
+    }
+</script>
+
+<script>
+    $('.print-btn').on('click', function () {
+        print();
+    });
+</script>
+
+
+
+<script>
+    function generatePDF() {
+        // Choose the element that our invoice is rendered in.
+        const element = document.getElementById("content");
+        // Choose the element and save the PDF for our user.
+        html2pdf()
+        // .set({ html2canvas:{ dpi: 192, letterRendering: true, width: 1424##)
+            .set({ jsPDF: { unit: 'pt', format: 'a2', orientation: 'portrait' }} )
+            // .set({ html2canvas: { dpi: 192, letterRendering: true, width: 1424, height: 1448 * nbPages },
+            //     jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' ##)
+            .from(element)
+            .save('Adwords Audit');
+    }
+</script>
+
+
+
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>
+</html>
