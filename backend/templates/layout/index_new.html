@@ -25,6 +25,7 @@
         <div class="row">
             <div class="col-md-12 text-center title">
                 <h2>Overall Audit Score</h2>
+                <h3>Account: {{profile.name}}</h3>
             </div>
         </div>
         <div class="row">
@@ -70,7 +71,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12 text-center title">
-                <h2>Search Audit Results</h2>
+                <h2>Account Performance Data</h2>
             </div>
         </div>
         <div class="row">
@@ -235,7 +236,7 @@
                 </div>
         </div>
 
-        {% for report in data.results if report.flag == 'other' and report.type == 'display'%}
+        {% for report in data.results if report.flag == 'other' and report.type == 'display' and report.rows|length > 1%}
         <div class="break-page"></div>
         <div class="row">
             <div class="col-md-12 text-center title">

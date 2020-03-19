@@ -959,7 +959,7 @@ def ctr15_placements(adwords_client, item, list=None):
         for placement_name, placement_data in agg.items() \
         if  placement_data['Clicks']/placement_data['Impressions'] > 0.15]
     res['flag'] = 'other'
-    res['rows'] = [header] + rows if len(rows) > 1 else rows
+    res['rows'] = [header] + rows if len(rows) > 0 else rows
     return res
 
 @check_wrapper
@@ -991,7 +991,7 @@ def cr15_placements(adwords_client, item, list=None):
         for placement_name, placement_data in agg.items() \
         if  placement_data['Conversions']/placement_data['Clicks'] > 0.15]
     res['flag'] = 'other'
-    res['rows'] = [header] + rows if len(rows) > 1 else rows
+    res['rows'] = [header] + rows if len(rows) > 0 else rows
 
     return res
 

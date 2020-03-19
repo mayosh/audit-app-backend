@@ -120,7 +120,7 @@ def oauth_redirected_callback():
     cb_scopes=[oauth2.GetAPIScope('adwords'),
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile']
-
+    app.logger.info( f"session contains {flask.session.keys()}" ) #fl_config
     conf = {'web': flask.session['fl_config']}
     redirect = 'oauth_callback'
 
@@ -232,8 +232,11 @@ import checks
 
 @app.route('/start_audit')
 def auth_redirect():
+    flask.session.permanent = True
+    app.permanent_session_lifetime = datetime.timedelta(minutes=5)
     auth_url = getAuthUrl(flask.session)
     app.logger.info(f"auth_url is {auth_url}")
+    app.logger.info(f"session keys are {flask.session.keys()}")
     return flask.redirect(auth_url)
 
 
@@ -317,7 +320,7 @@ def check2_0(customerId):
     }
     app.logger.info(flask.request.args.get('template', default = 'skip'))
     if flask.request.args.get('template', default = 'skip') != 'skip':
-        return flask.render_template('index_new.html', data=response, profile=get_profile())
+        return flask.render_template('index_new.html', data=response, profile=get_profile(customerId))
     return flask.jsonify(response)
 
 
