@@ -257,8 +257,8 @@ def check2_0(customerId):
     lead_ref = db.collection('leads').document(user['gid'])
     adwords_client = get_adwords_client()
     adwords_client.SetClientCustomerId(customerId)
-    customer_service = adwords_client.GetService('CustomerService', version='v201809')
-    account = customer_service.getCustomers()[0]
+    # customer_service = adwords_client.GetService('CustomerService', version='v201809')
+    # account = customer_service.getCustomers()[0]
 
     try:
         lead_data = lead_ref.get().to_dict()
@@ -323,6 +323,16 @@ def check2_0(customerId):
         return flask.render_template('index_new.html', data=response, profile=get_profile(customerId))
     return flask.jsonify(response)
 
+@app.route('/audit/<customerId>/debug/<check_name>')
+def check2_0_debug(customerId,check_name):
+    check = next((check for check in checks.check_list if check.get('name', None) == check_name), None)
+    response = {'error': f"no check '{check_name}'"}
+    if not check:
+        return flask.jsonify(response)
+    adwords_client = get_adwords_client()
+    adwords_client.SetClientCustomerId(customerId)
+    response = check['apply'](adwords_client, check)
+    return flask.jsonify(response)
 
 # helper functions
 def credentials_to_dict(credentials):
