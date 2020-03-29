@@ -116,9 +116,11 @@ def get_search_campaigns_ids(client):
         if 'entries' in campaigns:
             for campaign in campaigns['entries']:
                 campaign_ids.append(campaign['id'])
-        cache.rpush(hash_name, *campaign_ids)
-        cache.expire(hash_name, 50)
+        if len(campaign_ids) > 0:
+            cache.rpush(hash_name, *campaign_ids)
+            cache.expire(hash_name, 50)
         return campaign_ids
+
 def p2f(x):
     return float(x.strip('%'))/100
  
@@ -135,6 +137,8 @@ def full_broad_exist(adwords_client, item, list=None):
 
     if ids == []:
         res['flag'] = 'other'
+        res['applicable'] = False
+        return res
     else:
         # Create report query.
         report_query = (adwords.ReportQueryBuilder()
@@ -223,6 +227,8 @@ def short_broad_exist(adwords_client, item, list=None):
 
     if ids == []:
         res['flag'] = 'other'
+        res['applicable'] = False
+        return res
     else:
         # Create report query.
         report_query = (adwords.ReportQueryBuilder()

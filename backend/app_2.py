@@ -106,6 +106,7 @@ def get_profile(clientId):
     customer_service = adwords_client.GetService('CustomerService', version='v201809')
     account = customer_service.getCustomers()
 
+
     return { 'id': account[0]['customerId'], 'name': account[0]['descriptiveName'] }
 
 @app.route('/oauth_callback')
@@ -233,7 +234,7 @@ import checks
 @app.route('/start_audit')
 def auth_redirect():
     flask.session.permanent = True
-    app.permanent_session_lifetime = datetime.timedelta(minutes=5)
+    app.permanent_session_lifetime = datetime.timedelta(days=1)
     auth_url = getAuthUrl(flask.session)
     app.logger.info(f"auth_url is {auth_url}")
     app.logger.info(f"session keys are {flask.session.keys()}")
@@ -272,7 +273,6 @@ def check2_0(customerId):
             }
             lead_ref.set(lead_data)
     except google.cloud.exceptions.NotFound:
-        print ('user not found')
         lead_data = {
             'id': user['gid'],
             'name' : user['name'],
@@ -284,6 +284,7 @@ def check2_0(customerId):
     results = []
     total_score = 0
     max_score = 0
+    typed_score = {}
 
     # pushing tasks to async loop
     loop = asyncio.new_event_loop()
@@ -298,26 +299,37 @@ def check2_0(customerId):
     return_exceptions=True
     ))
     loop.close()
-
+    account_stats = None
     app.logger.info('quering async jobs results')
     for idx, async_res in enumerate(async_resutls):
         item = checks.check_list[idx]
         if not isinstance(async_res, Exception):
+            if item['name'] == 'account_stats':
+                account_stats = async_res['rows'][1:-1]
             results.append(async_res)
             if async_res.get('scored', False):
                 total_score += async_res.get('scored', 0)
                 max_score += max(item['score'].values())
+                if not typed_score.get(item['type'], None):
+                    typed_score[item['type']] = {'score': 0, 'max_score': 0}
+                typed_score[item['type']]['score'] += async_res.get('scored', 0)   
+                typed_score[item['type']]['max_score'] += max(item['score'].values())
         else:
             app.logger.warning(f"bad result from {item['name']}:")
             app.logger.exception(async_res)
             results.append({ 'name': item.get('name',  'unknown'), 'error': 'no data' })
     app.logger.info('async jobs ready')
+    if account_stats is not None:
+        network_data = { row[1]:row[2] for row in account_stats }
     
     response = {
         'results': results,
         'total_score': total_score,
-        'max_score': max_score
+        'max_score': max_score,
+        'typed_score': typed_score,
+        'types': network_data
     }
+
     app.logger.info(flask.request.args.get('template', default = 'skip'))
     if flask.request.args.get('template', default = 'skip') != 'skip':
         return flask.render_template('index_new.html', data=response, profile=get_profile(customerId))
