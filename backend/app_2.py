@@ -231,6 +231,16 @@ def select_ads_account():
 
 import checks
 
+with open('texts.json') as f:
+    text_updates = json.load(f)
+
+for item in checks.check_list:
+    new_text = next((text for text in text_updates if text['name'] == item['name']), None)
+    if new_text is not None:
+        item['description'] = new_text['description']
+        item['long_description'] = new_text['long_description']
+
+
 @app.route('/start_audit')
 def auth_redirect():
     flask.session.permanent = True
@@ -303,6 +313,9 @@ def check2_0(customerId):
     asyncio.set_event_loop(loop)
     queue = []
     app.logger.info('starting async jobs')
+
+
+
     for item in checks.check_list :
         item['imagename'] = None
         queue.append(asyncator(loop, item['apply'], adwords_client, item, list=True))

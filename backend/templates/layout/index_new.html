@@ -93,7 +93,9 @@
                             {% for value in row %}
                             <td>
                                 {% if '%' in data.results[-1].rows[0][loop.index0] %}
-                                    {{'%0.2f' % (value * 100)|float}}%   
+                                    {% set float_value = value|float %} 
+                                    {% set value_100 = float_value*100 %}
+                                    {{ value_100 }}%   
                                 {% elif value is number %}
                                     {{'%0.2f'|format(value|float)}}
                                 {% else %}
@@ -107,10 +109,14 @@
                         <tr>
                             {% for value in data.results[-1].rows[-1] %}
                             <th>
-                                {% if value is number %}
+                                {% if '%' in data.results[-1].rows[0][loop.index0] %}
+                                    {% set float_value = value|float %} 
+                                    {% set value_100 = float_value*100 %}
+                                    {{ value_100 }}%   
+                                {% elif value is number %}
                                     {{'%0.2f'|format(value|float)}}
-                                    {% else %}
-                                    {{value}}
+                                {% else %}
+                                    {{value | replace("USD", "$") | replace ("EUR", "€") | replace("GBP", "£") }}
                                 {% endif %}
                             </th>
                             {% endfor %}
@@ -168,7 +174,7 @@
                         <!-- <img src= "img/icons/analytics.svg"> -->
                         <div class="count">{{ check.scored }} </div>
                         <div class="bit-description">{{ check.description }} </div>
-                        <div class="btn-block mt-auto test-passed test2-{{check.flag}}">
+                        <div class="btn-block mt-auto test2-{{check.flag}}" data-toggle="popover" data-content="{{ check.long_description }}">
                             {% if check.flag == 'red' %}
                                 Test Failed
                             {% elif check.flag == 'green' %}
@@ -298,6 +304,7 @@
           <h6>Enter email and we'll sent a link to the report:</h6>
           <form class="modal--custom__form" action="">
               <input class="modal--custom__form__input" type="email" placeholder="user@example.com"/>
+              <button class="button">Send</button>
           </form>
         </div>
       </div>

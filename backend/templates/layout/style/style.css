@@ -216,7 +216,7 @@ a.pdf-btn{
     text-transform: uppercase;
 }
 
-.bit-box .test-passed-partly, .bit-box .test2-passed-amber{
+.bit-box .test-passed-partly, .bit-box .test2-amber{
     width: 100%;
     height: 58px;
     background: #ffce1f;
@@ -330,9 +330,16 @@ span#procent::after {
     color: #ccc;
 }
 
+.modal--custom__form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .modal--custom__form .modal--custom__form__input {
+    margin-right: 6px;
     width: 100%;
-    max-width: 300px;
+    max-width: 270px;
     height: 36px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -342,4 +349,13 @@ span#procent::after {
 
 .modal--custom__form .modal--custom__form__input::placeholder {
     color: #ccc;
+}
+
+.modal--custom__form .button {
+    padding: 0 16px;
+    height: 36px;
+    background: #0f93e9;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
 }

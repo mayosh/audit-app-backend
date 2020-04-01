@@ -28,7 +28,7 @@ def check_wrapper(func):
     def list_wrapper(*args, **kwargs):
         item = args[1] if len(args) > 0 else None
         res = func(*args, **kwargs)
-        res.update({key: item.get(key) for key in ['name', 'description', 'type'] })
+        res.update({key: item.get(key, None) for key in ['name', 'description', 'type', 'long_description'] })
         if hasattr(res, 'rows') and len(res['rows']) < 2:
             res['rows'] = []
         if item.get('score', False) and res.get('flag', False) and res.get('flag', False) != 'other':
