@@ -76,11 +76,6 @@ a.pdf-btn{
     margin-top: 120px;
 }
 
-.title h3 {
-    margin-bottom: 25px;
-    margin-top: 50px;
-}
-
 .table-responsive{
     border: 1px solid #dddddd;
     border-radius: 6px;
@@ -189,7 +184,7 @@ a.pdf-btn{
     margin-bottom: 35px;
 }
 
-.bit-box .test2-green{
+.bit-box .test-passed, .bit-box .test2-green{
     width: 100%;
     height: 58px;
     background: #39b54a;
@@ -201,15 +196,15 @@ a.pdf-btn{
     text-transform: uppercase;
 }
 
-.bit-box .count-passed{
+.bit-box .count-passed, .bit-box .count-green,{
     color: #e41919;
 }
 
-.bit-box .count-failed{
+.bit-box .count-failed, .bit-box .count-red {
     color: #e41919;
 }
 
-.bit-box .test2-red{
+.bit-box .test-failed, .bit-box .test2-red{
     width: 100%;
     height: 58px;
     background: #e41919;
@@ -221,7 +216,7 @@ a.pdf-btn{
     text-transform: uppercase;
 }
 
-.bit-box .test2-amber{
+.bit-box .test-passed-partly, .bit-box .test2-passed-amber{
     width: 100%;
     height: 58px;
     background: #ffce1f;
@@ -233,7 +228,7 @@ a.pdf-btn{
     text-transform: uppercase;
 }
 
-/*.test2-red, .test2-green, .test2-amber{*/
+/*.test-failed, .test-passed, .test-passed-partly{*/
     /*bottom: 40px;*/
     /*left: 40px;*/
     /*right: 40px;*/
@@ -315,16 +310,36 @@ span#procent::after {
     border: none!important;
 }
 
-
-
-section, table {
-    page-break-inside: avoid;
-    
-}
-.break-page {
-    break-before: always;
+.modal--custom .modal-header {
+    padding-bottom: 0;
+    border-bottom: none;
 }
 
-div.card, div.card * {
-    page-break-inside: avoid;
+.modal--custom .modal-body {
+    padding-bottom: 56px;
+}
+
+.modal--custom h6 {
+    margin-bottom: 1rem;
+    color: #0f93e9;
+    font-size: 18px;
+}
+
+.modal--custom p {
+    margin-bottom: 0;
+    color: #ccc;
+}
+
+.modal--custom__form .modal--custom__form__input {
+    width: 100%;
+    max-width: 300px;
+    height: 36px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    color: #ccc;
+    text-align: center;
+}
+
+.modal--custom__form .modal--custom__form__input::placeholder {
+    color: #ccc;
 }

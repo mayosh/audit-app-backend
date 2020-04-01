@@ -240,6 +240,18 @@ def auth_redirect():
     app.logger.info(f"session keys are {flask.session.keys()}")
     return flask.redirect(auth_url)
 
+# @app.route('/test_format')
+# def test_format():
+#     return flask.render_template('test_format.html', num = 0.81 )
+
+@app.route('/audit/dummy/<num>')
+def dummy(num):
+    file_name = 'dummy.json'
+    if num == '1':
+        file_name = 'dummy2.json'
+    with open(file_name) as f:
+        d = json.load(f)
+        return flask.render_template('index_new.html', data=d, profile={ 'id': 'XXX123XXX', 'name': 'dummy account' })
 
 @app.route('/audit/<customerId>')
 def check2_0(customerId):

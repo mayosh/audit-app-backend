@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style/bootstrap/bootstrap.min.css') }}"  >
     <!-- <link rel="stylesheet" href="style/style.css" > -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style/style.css') }}" >
+    <link rel="stylesheet" media="print" href="{{ url_for('static', filename='style/print.css') }}">
+
 
 
     <script src="{{ url_for('static', filename='html2pdf.bundle.js')}}"></script>
@@ -31,7 +33,7 @@
         <div class="row">
             <div class="col-md-3 my-auto">
                 <div class="score-means">
-                    <a href="https://clicksincontext.com/adwords-audit-score" target="_blank">What does my score mean?</a>
+                    <a href="https://clicksincontext.com/adwords-audit-score" target="_blank" data-toggle="modal" data-target="#explanationModal">What does my score mean?</a>
                 </div>
             </div>
             <div class="col-md-6">
@@ -44,7 +46,7 @@
             </div>
             <div class="col-md-3 text-right my-auto">
                 <div class="share-report">
-                    <a href="mailto:?subject=Our Google Ads Audit Score&body=http%3A%2F%2Flcoalhost" title="Our Google Ads Audit Score">
+                    <a href="mailto:?subject=Our Google Ads Audit Score&body=http%3A%2F%2Flcoalhost" data-toggle="modal" data-target="#share-reportModal"  title="Our Google Ads Audit Score">
                         <img src="{{ url_for('static', filename='img/icons/share.png')}}"><span>Share Report</span>
                     </a>
                 </div>
@@ -90,10 +92,12 @@
                         <tr>
                             {% for value in row %}
                             <td>
-                                {% if value is number %}
+                                {% if '%' in data.results[-1].rows[0][loop.index0] %}
+                                    {{'%0.2f' % (value * 100)|float}}%   
+                                {% elif value is number %}
                                     {{'%0.2f'|format(value|float)}}
-                                    {% else %}
-                                    {{value}}
+                                {% else %}
+                                    {{value | replace("USD", "$") | replace ("EUR", "€") | replace("GBP", "£") }}
                                 {% endif %}
                             </td>
                             {% endfor %}
@@ -261,6 +265,8 @@
                                         <td>
                                         {% if value is number %}
                                         {{'%0.2f'|format(value|float)}}
+                                        {% elif '%' in report.rows[0][loop.index0] %}
+                                        {{  '0:.0%' | format(value * 100|float)}}
                                         {% else %}
                                         {{value}}
                                         {% endif %}
@@ -279,6 +285,43 @@
 <!--Display Audit Results End-->
 
 
+<!-- share-reportModal -->
+<div class="modal modal--custom fade" id="share-reportModal" tabindex="-1" role="dialog" aria-labelledby="share-reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body text-center">
+          <h6>Enter email and we'll sent a link to the report:</h6>
+          <form class="modal--custom__form" action="">
+              <input class="modal--custom__form__input" type="email" placeholder="user@example.com"/>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- explanationModal -->
+  <div class="modal modal--custom fade" id="explanationModal" tabindex="-1" role="dialog" aria-labelledby="explanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body text-center">
+          <h6>Click in content audit:</h6>
+          
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
 
 

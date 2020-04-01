@@ -1,0 +1,21 @@
+.title h2 {
+	margin-top: 40px;
+}
+
+a.pdf-btn {
+	margin-bottom: 0;
+}
+
+.list-of-bits {
+	margin-top: 40px;
+	margin-bottom: 400px;
+}
+
+.bit-box .count {
+	font-size: 30px;
+}
+
+.bit-box .bit-description {
+	margin-bottom: 0;
+	font-size: 20px;
+}
