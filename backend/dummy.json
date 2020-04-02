@@ -1,0 +1,654 @@
+{
+  "max_score": 180, 
+  "results": [
+    {
+      "description": "Any conversions set up in tools>conversions?", 
+      "flag": "green", 
+      "imagename": null, 
+      "long_description": "If you are not measuring conversions, your spend is completely blind. This is a BIG red flag.", 
+      "name": "conversions_check", 
+      "scored": 10, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Full broad matches (not modifier)", 
+      "flag": "green", 
+      "long_description": "Broad match = printing money for Google, who make it way, way too broad and irrelevant.", 
+      "name": "broad_modifiers_check", 
+      "rows": [
+        [
+          "Keyword", 
+          "Ad group", 
+          "Campaign", 
+          "Clicks"
+        ]
+      ], 
+      "scored": 10, 
+      "type": "search"
+    }, 
+    {
+      "description": "1 or 2 word Broad Match Modifiers", 
+      "flag": "red", 
+      "long_description": "Similar to broad match issues, 1 and 2 work broad match modifiers are a flag to be investigated.", 
+      "name": "short_modifiers_check", 
+      "rows": [
+        [
+          "Keyword", 
+          "Ad group", 
+          "Campaign", 
+          "Clicks"
+        ], 
+        [
+          "+mimecast +reseller", 
+          "Mimecast Reseller", 
+          "Mimecast Calculator", 
+          "0"
+        ], 
+        [
+          "+mimecast +license", 
+          "Mimecast Licenses", 
+          "Mimecast Calculator", 
+          "5"
+        ], 
+        [
+          "+mimecast +pricing", 
+          "Mimecast Pricing", 
+          "Mimecast Calculator", 
+          "12"
+        ], 
+        [
+          "+mimecast +licenses", 
+          "Mimecast Licenses", 
+          "Mimecast Calculator", 
+          "4"
+        ], 
+        [
+          "+mimecast +partner", 
+          "Mimecast Partner", 
+          "Mimecast Calculator", 
+          "3"
+        ], 
+        [
+          "+mimecast +cost", 
+          "Mimecast Cost", 
+          "Mimecast Calculator", 
+          "19"
+        ]
+      ], 
+      "scored": -20, 
+      "type": "search"
+    }, 
+    {
+      "description": "Landing pages are mobile friendly", 
+      "flag": "green", 
+      "long_description": "Most internet browsing is now on mobile, so mobile friendly landing pages are mandatory.", 
+      "name": "mobile_firendly_pages", 
+      "rows": [
+        [
+          "Campaign", 
+          "Expanded landing page", 
+          "Clicks", 
+          "Mobile-friendly click rate"
+        ]
+      ], 
+      "scored": 5, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Landing Page = homepage (no /anything at end of URL)", 
+      "flag": "green", 
+      "long_description": "Home pages tend to be general - specific keyword-related pages are usually optimum.", 
+      "name": "landing_home_pages", 
+      "rows": [
+        [
+          "Campaign", 
+          "Expanded landing page", 
+          "Clicks"
+        ]
+      ], 
+      "scored": 5, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "No keywords with quality score <5", 
+      "flag": "amber", 
+      "long_description": "Low quality score = much higher CPCs compared to your competitors.", 
+      "name": "low_quality_keywords", 
+      "rows": [
+        [
+          "Keyword", 
+          "Campaign", 
+          "Clicks", 
+          "Quality score", 
+          "Has Quality Score"
+        ], 
+        [
+          "+mimecast +partner", 
+          "Mimecast Calculator", 
+          "3", 
+          "3", 
+          "true"
+        ], 
+        [
+          "mimecast partner", 
+          "Mimecast Calculator", 
+          "3", 
+          "3", 
+          "true"
+        ], 
+        [
+          "mimecast partner", 
+          "Mimecast Calculator", 
+          "3", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+mimecast +license", 
+          "Mimecast Calculator", 
+          "5", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+mimecast +licenses", 
+          "Mimecast Calculator", 
+          "4", 
+          "3", 
+          "true"
+        ]
+      ], 
+      "scored": 5, 
+      "type": "search"
+    }, 
+    {
+      "description": "Has Negatives", 
+      "flag": "green", 
+      "long_description": "Negatives are keyword matches you do NOT want. If negatives don't exist, it indicates waste.", 
+      "name": "has_negatives", 
+      "scored": 5, 
+      "type": "search"
+    }, 
+    {
+      "description": "Account has an URL Template", 
+      "flag": "green", 
+      "long_description": "If a pro is working on your account, you will have account templates for superior tracking and/or fraud detection.", 
+      "name": "account_url_template", 
+      "scored": 10, 
+      "type": "account-wide", 
+      "urls": {
+        "id": 8990306229, 
+        "url": "https://monitor.clickcease.com/tracker/tracker.aspx?id=ldKNaCp6R75w2d&adpos={adposition}&locphisical={loc_physical_ms}&locinterest={loc_interest_ms}&adgrp={adgroupid}&kw={keyword}&nw={network}&url={lpurl}&cpn={campaignid}&device={device}&ccpturl=koncisesolutions.com&pl={placement}"
+      }
+    }, 
+    {
+      "description": "Ad groups have three or more ads", 
+      "flag": "amber", 
+      "imagename": null, 
+      "long_description": "Always be beating your own ad copy.", 
+      "name": "has_more3_ads", 
+      "rows": [
+        [
+          "CampaignName", 
+          "AdGroupName", 
+          "NumberAds"
+        ], 
+        [
+          "Campaign", 
+          "Ad group", 
+          1
+        ], 
+        [
+          "Mimecast Calculator", 
+          "Mimecast Licenses", 
+          2
+        ], 
+        [
+          "Mimecast Calculator", 
+          "Mimecast Cost", 
+          2
+        ], 
+        [
+          "Mimecast Calculator", 
+          "Mimecast Partner", 
+          2
+        ], 
+        [
+          "Remarketing", 
+          "Calculator Visitors (365 days)", 
+          1
+        ], 
+        [
+          "Mimecast Calculator", 
+          "Mimecast Reseller", 
+          2
+        ], 
+        [
+          "GDN", 
+          "Computer Security", 
+          1
+        ]
+      ], 
+      "scored": 0, 
+      "type": "search"
+    }, 
+    {
+      "description": "Search CTR is Less Than 3%", 
+      "flag": "green", 
+      "long_description": "Any search campaign <3% CTR is a red flag and needs priority investigation.", 
+      "name": "search_ctr", 
+      "scored": 10, 
+      "type": "search"
+    }, 
+    {
+      "description": "Search Top Impression rate is Better than 30%", 
+      "flag": "green", 
+      "long_description": "There is a lot of wasted opportunity going on, you are losing the battles.", 
+      "name": "ave_position", 
+      "scored": 5, 
+      "type": "search"
+    }, 
+    {
+      "description": "High spending account has experiments happening", 
+      "flag": "amber", 
+      "long_description": "Any decent-volume account should be experimenting. For example, with alternative bid strategies.", 
+      "name": "have_trials", 
+      "scored": 0, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "CPC campaigns have bid modifiers in place", 
+      "flag": "red", 
+      "long_description": "If manually bidding with CPC, bid-modifiers based on conversion maths should be in place or the setup is suboptimal.", 
+      "name": "has_modifiers", 
+      "rows": [
+        [
+          "Campaign name", 
+          "Has Modifiers"
+        ], 
+        [
+          "No Enabled Campaigns", 
+          "No Data"
+        ]
+      ], 
+      "scored": -10, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Account has ad customized feeds", 
+      "flag": "red", 
+      "long_description": "If you're not using customized feeds, your ads aren't as personalised as they could be.", 
+      "name": "has_customizers", 
+      "scored": -10, 
+      "type": "search"
+    }, 
+    {
+      "description": "Account has non manual strategies (applicable for spending over 3K)", 
+      "flag": "green", 
+      "long_description": "Any decent-spending account should be trying 'smart' bidding strategies. They don't always work, but should be regularly tested.", 
+      "name": "bid_strategy", 
+      "rows": [
+        [
+          "Bidding Strategy Type", 
+          "Cost"
+        ], 
+        [
+          "cpc", 
+          0.0
+        ], 
+        [
+          " --", 
+          1298.68
+        ], 
+        [
+          "Maximize Conversions", 
+          136.207405
+        ], 
+        [
+          "Target CPA", 
+          0.0
+        ]
+      ], 
+      "scored": 10, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Account has ad customized feeds", 
+      "flag": "red", 
+      "long_description": "If you're not using customized feeds, your ads aren't as personalised as they could be.", 
+      "name": "has_customizers", 
+      "scored": -10, 
+      "type": "search"
+    }, 
+    {
+      "description": "Location targeting set to \"physically in\" location, not \"interested in\" default", 
+      "flag": "green", 
+      "long_description": "NOT APPLICABLE ANY MORE I DON'T THINK?", 
+      "name": "location_interested", 
+      "rows": [
+        [
+          "Camp Id", 
+          "Camp Name", 
+          "Geo Settings"
+        ]
+      ], 
+      "scored": 10, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Extensions in use (min 3x types)", 
+      "flag": "green", 
+      "long_description": "Extensions make your ad bigger - more ad real estate = better CTRs", 
+      "name": "extensions_in_use", 
+      "rows": [
+        [
+          "ExtensionPlaceholderType", 
+          "Impressions"
+        ], 
+        [
+          "Sitelink", 
+          1278
+        ], 
+        [
+          "Call", 
+          23783
+        ], 
+        [
+          "Callout", 
+          1413
+        ], 
+        [
+          "Structured snippet", 
+          1238
+        ]
+      ], 
+      "scored": 10, 
+      "type": "search"
+    }, 
+    {
+      "description": "Display + Video + Shopping - which are set up/had traffic", 
+      "flag": "other", 
+      "long_description": "-", 
+      "name": "channel_type_list", 
+      "rows": [
+        [
+          "AdvertisingChannelType", 
+          "Clicks"
+        ], 
+        [
+          "SEARCH", 
+          265
+        ], 
+        [
+          "DISPLAY", 
+          302
+        ]
+      ], 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Top Placements", 
+      "flag": "other", 
+      "long_description": "These are where your ads are showing most. Watch out for children's TV & VPN apps (if not relevant to your service) - these are typically waste", 
+      "name": "top_placements", 
+      "rows": [
+        [
+          "Criteria", 
+          "Impressions"
+        ], 
+        [
+          "youtube.com", 
+          "23369"
+        ], 
+        [
+          "youtube.com", 
+          "14366"
+        ], 
+        [
+          "dailymail.co.uk", 
+          "10413"
+        ], 
+        [
+          "dailymail.co.uk", 
+          "4695"
+        ], 
+        [
+          "mobileapp::1-357218860", 
+          "2391"
+        ], 
+        [
+          "dailymail.co.uk", 
+          "2254"
+        ], 
+        [
+          "mobileapp::1-357218860", 
+          "1616"
+        ], 
+        [
+          "reddit.com", 
+          "617"
+        ], 
+        [
+          "ebay.co.uk", 
+          "555"
+        ], 
+        [
+          "theguardian.com", 
+          "546"
+        ]
+      ], 
+      "type": "display"
+    }, 
+    {
+      "description": "Placements with 15%+ CTR (probably fraud)", 
+      "flag": "other", 
+      "long_description": "These placements are at best forced click placements, and very possibly fraud. Scrutinise any conversions here closely", 
+      "name": "ctr15_placements", 
+      "rows": [], 
+      "type": "display"
+    }, 
+    {
+      "description": "Placements with 15%+ Conversion (probably not real conversions)", 
+      "flag": "other", 
+      "long_description": "If it looks too good to be true, it usually is. Track this placement through to sale and see if they are dodgy looking signups!", 
+      "name": "cr15_placements", 
+      "rows": [
+        [
+          "Criteria", 
+          "Clicks", 
+          "Impressions", 
+          "Ctr"
+        ], 
+        [
+          "youtube.com", 
+          92.0, 
+          122.0, 
+          0.7540983606557377
+        ], 
+        [
+          "mobileapp::2-com.imo.android.imoim", 
+          5.0, 
+          6.0, 
+          0.8333333333333334
+        ], 
+        [
+          "mobileapp::1-357218860", 
+          2.0, 
+          3.0, 
+          0.6666666666666666
+        ], 
+        [
+          "thesun.co.uk", 
+          1.0, 
+          1.0, 
+          1.0
+        ], 
+        [
+          "dailymail.co.uk", 
+          13.0, 
+          19.0, 
+          0.6842105263157895
+        ], 
+        [
+          "mobileapp::2-com.mail.emailapp.easymail2018", 
+          2.0, 
+          2.0, 
+          1.0
+        ], 
+        [
+          "mobileapp::2-com.taggedapp", 
+          1.0, 
+          1.0, 
+          1.0
+        ], 
+        [
+          "ebay.co.uk", 
+          1.0, 
+          1.0, 
+          1.0
+        ], 
+        [
+          "y99.in", 
+          2.0, 
+          2.0, 
+          1.0
+        ]
+      ], 
+      "type": "display"
+    }, 
+    {
+      "description": "Keyword targeting exists", 
+      "flag": "red", 
+      "long_description": "On GDN, all targeting options have their merits and drawbacks. This tells you where you might be missing out.", 
+      "name": "display_ks_targeting", 
+      "rows": [
+        [
+          "Criteria", 
+          "Clicks"
+        ]
+      ], 
+      "scored": -10, 
+      "type": "display"
+    }, 
+    {
+      "description": "Topic targeting exists", 
+      "flag": "red", 
+      "long_description": "On GDN, all targeting options have their merits and drawbacks. This tells you where you might be missing out.", 
+      "name": "display_topics_targeting", 
+      "rows": [
+        [
+          "Criteria", 
+          "Clicks"
+        ]
+      ], 
+      "scored": -10, 
+      "type": "display"
+    }, 
+    {
+      "description": "Audience targeting exists", 
+      "flag": "green", 
+      "long_description": "On GDN, all targeting options have their merits and drawbacks. This tells you where you might be missing out.", 
+      "name": "display_audience_targeting", 
+      "rows": [
+        [
+          "Criteria", 
+          " Clicks"
+        ], 
+        [
+          "All Users (60 Days)::boomuserlist::535865195", 
+          1
+        ], 
+        [
+          " --::custominmarket::75011150", 
+          16
+        ], 
+        [
+          " --::custominmarket::74842082", 
+          41
+        ], 
+        [
+          "PPC Landing Page::boomuserlist::949351551", 
+          29
+        ]
+      ], 
+      "scored": 10, 
+      "type": "display"
+    }, 
+    {
+      "description": "Placement targeting exists", 
+      "flag": "red", 
+      "long_description": "On GDN, all targeting options have their merits and drawbacks. This tells you where you might be missing out.", 
+      "name": "display_placement_targeting", 
+      "rows": [], 
+      "scored": -10, 
+      "type": "display"
+    }, 
+    {
+      "description": "Overall account stats", 
+      "long_description": "-", 
+      "name": "account_stats", 
+      "rows": [
+        [
+          "Currency", 
+          "Network", 
+          "Cost", 
+          "Conversions", 
+          "Cost / conv.", 
+          "CTR", 
+          "Impr. (Abs. Top) %", 
+          "Impr. (Top) %"
+        ], 
+        [
+          "GBP", 
+          "SEARCH", 
+          1298.68, 
+          "221.00", 
+          5.87638, 
+          "16.50%", 
+          "0.81", 
+          "0.99"
+        ], 
+        [
+          "GBP", 
+          "CONTENT", 
+          136.207405, 
+          "253.00", 
+          0.538369, 
+          "0.28%", 
+          "0.00", 
+          "0.00"
+        ], 
+        [
+          "Total", 
+          "TOTAL", 
+          1434.887405, 
+          "474.00", 
+          3.027189, 
+          "0.53%", 
+          "0.81", 
+          "0.99"
+        ]
+      ], 
+      "type": "account-wide"
+    }
+  ], 
+  "total_score": 25, 
+  "typed_score": {
+    "account-wide": {
+      "max_score": 60, 
+      "score": 40
+    }, 
+    "display": {
+      "max_score": 40, 
+      "score": -20
+    }, 
+    "search": {
+      "max_score": 80, 
+      "score": 5
+    }
+  }, 
+  "types": {
+    "CONTENT": 136.207405, 
+    "SEARCH": 1298.68
+  }
+}

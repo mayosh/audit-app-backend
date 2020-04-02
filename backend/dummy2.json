@@ -1,0 +1,834 @@
+{
+  "max_score": 165, 
+  "results": [
+    {
+      "description": "Any conversions set up in tools>conversions?", 
+      "flag": "green", 
+      "imagename": null, 
+      "long_description": "If you are not measuring conversions, your spend is completely blind. This is a BIG red flag.", 
+      "name": "conversions_check", 
+      "scored": 10, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Full broad matches (not modifier)", 
+      "flag": "green", 
+      "long_description": "Broad match = printing money for Google, who make it way, way too broad and irrelevant.", 
+      "name": "broad_modifiers_check", 
+      "rows": [
+        [
+          "Keyword", 
+          "Ad group", 
+          "Campaign", 
+          "Clicks"
+        ]
+      ], 
+      "scored": 10, 
+      "type": "search"
+    }, 
+    {
+      "description": "1 or 2 word Broad Match Modifiers", 
+      "flag": "red", 
+      "long_description": "Similar to broad match issues, 1 and 2 work broad match modifiers are a flag to be investigated.", 
+      "name": "short_modifiers_check", 
+      "rows": [
+        [
+          "Keyword", 
+          "Ad group", 
+          "Campaign", 
+          "Clicks"
+        ], 
+        [
+          "+bobcat +sales", 
+          "BOBCAT Dealer/Sales", 
+          "GEHL Campaigns (New)", 
+          "26"
+        ], 
+        [
+          "+gehl +hire", 
+          "GEHL +Hire", 
+          "GEHL Campaigns (New)", 
+          "0"
+        ], 
+        [
+          "+gehl +loaders", 
+          "GEHL Tracked Loaders", 
+          "GEHL Campaigns (New)", 
+          "0"
+        ], 
+        [
+          "+plant +dealership", 
+          "Plant Dealer", 
+          "SALES Plant Machinery (Yanmar)", 
+          "18"
+        ], 
+        [
+          "+gehl +parts", 
+          "GEHL +Parts", 
+          "GEHL Campaigns (New)", 
+          "0"
+        ], 
+        [
+          "+bobcat +dealer", 
+          "BOBCAT Dealer/Sales", 
+          "GEHL Campaigns (New)", 
+          "5"
+        ], 
+        [
+          "+Kubota +Dealer", 
+          "Dealers", 
+          "Competitors", 
+          "49"
+        ], 
+        [
+          "+yanmar +dealer", 
+          "Yanmar Dealer", 
+          "SALES Plant Machinery (Yanmar)", 
+          "3"
+        ], 
+        [
+          "+yanmar +dealers", 
+          "Yanmar Dealer", 
+          "SALES Plant Machinery (Yanmar)", 
+          "8"
+        ], 
+        [
+          "+yanmar +supplier", 
+          "Yanmar Dealer", 
+          "SALES Plant Machinery (Yanmar)", 
+          "4"
+        ], 
+        [
+          "+gehl +skidsteer", 
+          "GEHL Skidsteers", 
+          "GEHL Campaigns (New)", 
+          "4"
+        ], 
+        [
+          "+gehl +machinery", 
+          "GEHL Dealer/Sales", 
+          "GEHL Campaigns (New)", 
+          "0"
+        ], 
+        [
+          "+gehl +dealer", 
+          "GEHL Dealer/Sales", 
+          "GEHL Campaigns (New)", 
+          "1"
+        ], 
+        [
+          "+Takeuchi +Dealer", 
+          "Dealers", 
+          "Competitors", 
+          "21"
+        ], 
+        [
+          "+buy +yanmar", 
+          "Yanmar Dealer", 
+          "SALES Plant Machinery (Yanmar)", 
+          "3"
+        ], 
+        [
+          "+Hitachi +Dealer", 
+          "Dealers", 
+          "Competitors", 
+          "15"
+        ]
+      ], 
+      "scored": -20, 
+      "type": "search"
+    }, 
+    {
+      "description": "Landing pages are mobile friendly", 
+      "flag": "green", 
+      "long_description": "Most internet browsing is now on mobile, so mobile friendly landing pages are mandatory.", 
+      "name": "mobile_firendly_pages", 
+      "rows": [
+        [
+          "Campaign", 
+          "Expanded landing page", 
+          "Clicks", 
+          "Mobile-friendly click rate"
+        ]
+      ], 
+      "scored": 5, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Landing Page = homepage (no /anything at end of URL)", 
+      "flag": "green", 
+      "long_description": "Home pages tend to be general - specific keyword-related pages are usually optimum.", 
+      "name": "landing_home_pages", 
+      "rows": [
+        [
+          "Campaign", 
+          "Expanded landing page", 
+          "Clicks"
+        ]
+      ], 
+      "scored": 5, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "No keywords with quality score <5", 
+      "flag": "amber", 
+      "long_description": "Low quality score = much higher CPCs compared to your competitors.", 
+      "name": "low_quality_keywords", 
+      "rows": [
+        [
+          "Keyword", 
+          "Campaign", 
+          "Clicks", 
+          "Quality score", 
+          "Has Quality Score"
+        ], 
+        [
+          "spectrum plant", 
+          "SALES Plant Machinery (Yanmar)", 
+          "19", 
+          "1", 
+          "true"
+        ], 
+        [
+          "bte plant sales", 
+          "SALES Plant Machinery (Yanmar)", 
+          "13", 
+          "3", 
+          "true"
+        ], 
+        [
+          "butterfield plant sales", 
+          "SALES Plant Machinery (Yanmar)", 
+          "6", 
+          "3", 
+          "true"
+        ], 
+        [
+          "ms plant sales", 
+          "SALES Plant Machinery (Yanmar)", 
+          "1", 
+          "3", 
+          "true"
+        ], 
+        [
+          "robinson bobcat hire", 
+          "All HIRE (North) East (Birtley)", 
+          "0", 
+          "4", 
+          "true"
+        ], 
+        [
+          "plant machinery", 
+          "SALES Plant Machinery (Yanmar)", 
+          "41", 
+          "3", 
+          "true"
+        ], 
+        [
+          "plant and machinery sales", 
+          "SALES Plant Machinery (Yanmar)", 
+          "7", 
+          "4", 
+          "true"
+        ], 
+        [
+          "+plant +machinery", 
+          "SALES Plant Machinery (Yanmar)", 
+          "111", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+machinery +trader +uk", 
+          "SALES Plant Machinery (Yanmar)", 
+          "6", 
+          "3", 
+          "true"
+        ], 
+        [
+          "nal plant", 
+          "SALES Plant Machinery (Yanmar)", 
+          "14", 
+          "1", 
+          "true"
+        ], 
+        [
+          "+skidsteer +for sale", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+Kubota +Mini +Digger", 
+          "Competitors", 
+          "0", 
+          "1", 
+          "true"
+        ], 
+        [
+          "+Takeuchi +Mini-Digger", 
+          "Competitors", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+new +holland +skid +steer", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "small plant sales", 
+          "SALES Plant Machinery (Yanmar)", 
+          "2", 
+          "3", 
+          "true"
+        ], 
+        [
+          "humberside plant", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "1", 
+          "true"
+        ], 
+        [
+          "yorkshire machinery", 
+          "SALES Plant Machinery (Yanmar)", 
+          "2", 
+          "3", 
+          "true"
+        ], 
+        [
+          "machine trader uk", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "foundation plant", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "1", 
+          "true"
+        ], 
+        [
+          "steve leaming plant", 
+          "SALES Plant Machinery (Yanmar)", 
+          "1", 
+          "1", 
+          "true"
+        ], 
+        [
+          "+east +yorkshire +machinery +ltd", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+new holland +skid +steer", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+Kubota +Mini-Digger", 
+          "Competitors", 
+          "0", 
+          "1", 
+          "true"
+        ], 
+        [
+          "plant machinery", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+Takeuchi +Mini +Digger", 
+          "Competitors", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+cheap +mini +excavator +for +sale", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "how much to rent a excavator", 
+          "All HIRE Yorkshire", 
+          "0", 
+          "4", 
+          "true"
+        ], 
+        [
+          "+plant +dealership", 
+          "SALES Plant Machinery (Yanmar)", 
+          "18", 
+          "4", 
+          "true"
+        ], 
+        [
+          "bobcat for sale uk", 
+          "SALES Plant Machinery (Yanmar)", 
+          "10", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+plant +machine +supplier", 
+          "SALES Plant Machinery (Yanmar)", 
+          "0", 
+          "3", 
+          "true"
+        ], 
+        [
+          "+Takeuchi +Excavator", 
+          "Competitors", 
+          "0", 
+          "1", 
+          "true"
+        ], 
+        [
+          "+Hitachi +Excavator", 
+          "Competitors", 
+          "0", 
+          "1", 
+          "true"
+        ], 
+        [
+          "+Kubota +Excavator", 
+          "Competitors", 
+          "0", 
+          "3", 
+          "true"
+        ]
+      ], 
+      "scored": 5, 
+      "type": "search"
+    }, 
+    {
+      "description": "Has Negatives", 
+      "flag": "green", 
+      "long_description": "Negatives are keyword matches you do NOT want. If negatives don't exist, it indicates waste.", 
+      "name": "has_negatives", 
+      "scored": 5, 
+      "type": "search"
+    }, 
+    {
+      "description": "Account has an URL Template", 
+      "flag": "red", 
+      "long_description": "If a pro is working on your account, you will have account templates for superior tracking and/or fraud detection.", 
+      "name": "account_url_template", 
+      "scored": -10, 
+      "type": "account-wide", 
+      "urls": {
+        "id": 6141574435, 
+        "url": null
+      }
+    }, 
+    {
+      "description": "Ad groups have three or more ads", 
+      "flag": "amber", 
+      "imagename": null, 
+      "long_description": "Always be beating your own ad copy.", 
+      "name": "has_more3_ads", 
+      "rows": [
+        [
+          "CampaignName", 
+          "AdGroupName", 
+          "NumberAds"
+        ], 
+        [
+          "Campaign", 
+          "Ad group", 
+          1
+        ], 
+        [
+          "SALES Plant Machinery (Yanmar)", 
+          "Yanmar Digger", 
+          2
+        ], 
+        [
+          "GEHL Campaigns (New)", 
+          "BOBCAT Dealer/Sales", 
+          1
+        ], 
+        [
+          "GEHL Campaigns (New)", 
+          "GEHL Skidsteers", 
+          2
+        ], 
+        [
+          "GEHL Campaigns (New)", 
+          "GEHL +Hire", 
+          1
+        ], 
+        [
+          "GEHL Campaigns (New)", 
+          "GEHL Dealer/Sales", 
+          1
+        ], 
+        [
+          "GEHL Campaigns (New)", 
+          "GEHL +Parts", 
+          1
+        ]
+      ], 
+      "scored": 0, 
+      "type": "search"
+    }, 
+    {
+      "description": "Search CTR is Less Than 3%", 
+      "flag": "amber", 
+      "long_description": "Any search campaign <3% CTR is a red flag and needs priority investigation.", 
+      "name": "search_ctr", 
+      "scored": 3, 
+      "type": "search"
+    }, 
+    {
+      "description": "Search Top Impression rate is Better than 30%", 
+      "flag": "amber", 
+      "long_description": "There is a lot of wasted opportunity going on, you are losing the battles.", 
+      "name": "ave_position", 
+      "scored": 0, 
+      "type": "search"
+    }, 
+    {
+      "description": "High spending account has experiments happening", 
+      "flag": "amber", 
+      "long_description": "Any decent-volume account should be experimenting. For example, with alternative bid strategies.", 
+      "name": "have_trials", 
+      "scored": 0, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "CPC campaigns have bid modifiers in place", 
+      "flag": "red", 
+      "long_description": "If manually bidding with CPC, bid-modifiers based on conversion maths should be in place or the setup is suboptimal.", 
+      "name": "has_modifiers", 
+      "rows": [
+        [
+          "Campaign name", 
+          "Has Modifiers"
+        ], 
+        [
+          "Competitors", 
+          "No Modifiers"
+        ]
+      ], 
+      "scored": -10, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Account has ad customized feeds", 
+      "flag": "green", 
+      "long_description": "If you're not using customized feeds, your ads aren't as personalised as they could be.", 
+      "name": "has_customizers", 
+      "scored": 10, 
+      "type": "search"
+    }, 
+    {
+      "description": "Account has non manual strategies (applicable for spending over 3K)", 
+      "flag": "green", 
+      "long_description": "Any decent-spending account should be trying 'smart' bidding strategies. They don't always work, but should be regularly tested.", 
+      "name": "bid_strategy", 
+      "rows": [
+        [
+          "Bidding Strategy Type", 
+          "Cost"
+        ], 
+        [
+          "cpc", 
+          2356.33
+        ], 
+        [
+          "Target CPA", 
+          596.520852
+        ]
+      ], 
+      "scored": 10, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Account has ad customized feeds", 
+      "flag": "green", 
+      "long_description": "If you're not using customized feeds, your ads aren't as personalised as they could be.", 
+      "name": "has_customizers", 
+      "scored": 10, 
+      "type": "search"
+    }, 
+    {
+      "description": "Location targeting set to \"physically in\" location, not \"interested in\" default", 
+      "flag": "amber", 
+      "long_description": "NOT APPLICABLE ANY MORE I DON'T THINK?", 
+      "name": "location_interested", 
+      "rows": [
+        [
+          "Camp Id", 
+          "Camp Name", 
+          "Geo Settings"
+        ], 
+        [
+          8536570737, 
+          "Retargeting", 
+          "either AOI or LOP may trigger the ad"
+        ]
+      ], 
+      "scored": 0, 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Extensions in use (min 3x types)", 
+      "flag": "green", 
+      "long_description": "Extensions make your ad bigger - more ad real estate = better CTRs", 
+      "name": "extensions_in_use", 
+      "rows": [
+        [
+          "ExtensionPlaceholderType", 
+          "Impressions"
+        ], 
+        [
+          "Location", 
+          13700
+        ], 
+        [
+          "Sitelink", 
+          57358
+        ], 
+        [
+          "Call", 
+          46679
+        ], 
+        [
+          "Callout", 
+          28790
+        ], 
+        [
+          "Structured snippet", 
+          20317
+        ]
+      ], 
+      "scored": 10, 
+      "type": "search"
+    }, 
+    {
+      "description": "Display + Video + Shopping - which are set up/had traffic", 
+      "flag": "other", 
+      "long_description": "-", 
+      "name": "channel_type_list", 
+      "rows": [
+        [
+          "AdvertisingChannelType", 
+          "Clicks"
+        ], 
+        [
+          "SEARCH", 
+          1610
+        ], 
+        [
+          "DISPLAY", 
+          6061
+        ]
+      ], 
+      "type": "account-wide"
+    }, 
+    {
+      "description": "Top Placements", 
+      "flag": "other", 
+      "long_description": "These are where your ads are showing most. Watch out for children's TV & VPN apps (if not relevant to your service) - these are typically waste", 
+      "name": "top_placements", 
+      "rows": [
+        [
+          "Criteria", 
+          "Impressions"
+        ], 
+        [
+          "dailymail.co.uk", 
+          "107145"
+        ], 
+        [
+          "dailymail.co.uk", 
+          "97186"
+        ], 
+        [
+          "dailymail.co.uk", 
+          "73919"
+        ], 
+        [
+          "mobileapp::2-com.imo.android.imoim", 
+          "53543"
+        ], 
+        [
+          "youtube.com", 
+          "40924"
+        ], 
+        [
+          "youtube.com", 
+          "34917"
+        ], 
+        [
+          "mobileapp::2-com.imo.android.imoim", 
+          "30491"
+        ], 
+        [
+          "mobileapp::1-1407852246", 
+          "26070"
+        ], 
+        [
+          "mobileapp::2-com.imo.android.imoimbeta", 
+          "24107"
+        ], 
+        [
+          "youtube.com", 
+          "22492"
+        ]
+      ], 
+      "type": "display"
+    }, 
+    {
+      "description": "Placements with 15%+ CTR (probably fraud)", 
+      "flag": "other", 
+      "long_description": "These placements are at best forced click placements, and very possibly fraud. Scrutinise any conversions here closely", 
+      "name": "ctr15_placements", 
+      "rows": [], 
+      "type": "display"
+    }, 
+    {
+      "description": "Placements with 15%+ Conversion (probably not real conversions)", 
+      "flag": "other", 
+      "long_description": "If it looks too good to be true, it usually is. Track this placement through to sale and see if they are dodgy looking signups!", 
+      "name": "cr15_placements", 
+      "rows": [], 
+      "type": "display"
+    }, 
+    {
+      "description": "Keyword targeting exists", 
+      "flag": "red", 
+      "long_description": "On GDN, all targeting options have their merits and drawbacks. This tells you where you might be missing out.", 
+      "name": "display_ks_targeting", 
+      "rows": [
+        [
+          "Criteria", 
+          "Clicks"
+        ]
+      ], 
+      "scored": -10, 
+      "type": "display"
+    }, 
+    {
+      "description": "Topic targeting exists", 
+      "flag": "red", 
+      "long_description": "On GDN, all targeting options have their merits and drawbacks. This tells you where you might be missing out.", 
+      "name": "display_topics_targeting", 
+      "rows": [
+        [
+          "Criteria", 
+          "Clicks"
+        ]
+      ], 
+      "scored": -10, 
+      "type": "display"
+    }, 
+    {
+      "description": "Audience targeting exists", 
+      "flag": "red", 
+      "long_description": "On GDN, all targeting options have their merits and drawbacks. This tells you where you might be missing out.", 
+      "name": "display_audience_targeting", 
+      "rows": [
+        [
+          "Criteria", 
+          " Clicks"
+        ]
+      ], 
+      "scored": -10, 
+      "type": "display"
+    }, 
+    {
+      "description": "Placement targeting exists", 
+      "flag": "red", 
+      "long_description": "On GDN, all targeting options have their merits and drawbacks. This tells you where you might be missing out.", 
+      "name": "display_placement_targeting", 
+      "rows": [], 
+      "scored": -10, 
+      "type": "display"
+    }, 
+    {
+      "description": "Overall account stats", 
+      "long_description": "-", 
+      "name": "account_stats", 
+      "rows": [
+        [
+          "Currency", 
+          "Network", 
+          "Cost", 
+          "Conversions", 
+          "Cost / conv.", 
+          "CTR", 
+          "Impr. (Abs. Top) %", 
+          "Impr. (Top) %"
+        ], 
+        [
+          "GBP", 
+          "SEARCH", 
+          2356.33, 
+          "44.00", 
+          53.552955, 
+          "2.04%", 
+          "0.11", 
+          "0.13"
+        ], 
+        [
+          "GBP", 
+          "CONTENT", 
+          596.520852, 
+          "13.00", 
+          45.878531, 
+          "0.26%", 
+          "0.00", 
+          "0.00"
+        ], 
+        [
+          "Total", 
+          "TOTAL", 
+          2952.850852, 
+          "57.00", 
+          51.802647, 
+          "0.32%", 
+          "0.11", 
+          "0.13"
+        ]
+      ], 
+      "type": "account-wide"
+    }
+  ], 
+  "total_score": 3, 
+  "typed_score": {
+    "account-wide": {
+      "max_score": 50, 
+      "score": 10
+    }, 
+    "display": {
+      "max_score": 40, 
+      "score": -40
+    }, 
+    "search": {
+      "max_score": 75, 
+      "score": 33
+    }
+  }, 
+  "types": {
+    "CONTENT": 596.520852, 
+    "SEARCH": 2356.33
+  }
+}
